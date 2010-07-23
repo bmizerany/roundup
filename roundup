@@ -1,0 +1,143 @@
+#!/bin/sh
+# _(c) 2010 Blake Mizerany - MIT License_
+#
+# Spray **roundup** on your shells to eliminate weeds and bugs.  If your shells
+# survive **roundup**'s deathly toxic properties, they are considered
+# roundup-ready.
+#
+# roundup reads shell scripts to form test plans (or syllabuses).  Each
+# syllabus is sourced into a sandbox where each test is executed.
+#
+# An example syllabus:
+#
+# TODO:  Write an example
+#
+# __Install__
+#
+#     git clone http://github.com/bmizerany/roundup.git
+#     cd roundup
+#     make
+#     sudo make install
+#     # Alternatively, copy `roundup` wherever you like.
+#
+# __NOTE__:  Because test files are sourced into roundup, roundup prefixes it's
+# variable and function names with `roundup_` to avoid name collisions.  See
+# "Sandbox Test Runs" below for more insight.
+
+# Usage and Prerequisites
+# -----------------------
+
+# Exit if any following command exits with a non-zero status.
+set -e
+
+# Error on any unbound variables
+set -u
+
+# Usage is defined in a specific comment syntax. It is `grep`ed out of this file
+# when needed (i.e. The Tomayko Method).  See
+# [shocco](http://rtomayko.heroku.com/shocco) for more detail.
+
+#/ usage: roundup [file ...]
+
+roundup_usage() {
+    grep '^#/' <"$0" | cut -c4-
+}
+
+# Usage expected.  Run `usage` and exit clean.
+expr -- "$*" : ".*--help" >/dev/null && {
+    roundup_usage
+    exit 0
+}
+
+# Test at least one file was given
+test "$#" -eq 0 && {
+    roundup_usage
+    exit 1
+}
+
+# Store test files for looping and state assumptions about test scoring.  These
+# will be recalculated as each test runs.
+roundup_files="$@"
+roundup_ntests=0
+roundup_passed=0
+roundup_failed=0
+
+# Sandbox Test Runs
+# -------------------
+
+# The above checks guarantee we have at least one test.  We can now move through
+# each specified test-file, determine it's syllabus, and administer each test
+# listed in a isolated sandbox.
+for f in "$roundup_files"
+do
+    # Increment knowns
+    roundup_ntests=$(($roundup_ntests + 1))
+
+    # Create a sandbox, source test file, run tests, then leave
+    # without a trace.
+    (
+        # Consider the description to be the `basename` of the file minus the
+        # tailing -test.sh.
+        roundup_desc=$(basename "$f" .sh | sed 's/-test$//g')
+
+        # `roundup(5)`
+        # ------------
+
+        # A custom description is recommended, but optional.  Use `describe` to
+        # set the description to something more meaningful.
+        describe() {
+            roundup_desc="$*"
+        }
+
+        # Seek test methods and aggregate their names, forming a syllabus.  This
+        # is done before populating the sandbox with tests to avoid odd
+        # conflicts.
+        roundup_syllabus=$(
+            grep "^it_.*()" $1                       |
+            sed "s/\(it_[a-zA-Z0-9_]*\).*$/\1/g"
+        )
+
+        # We have the syllabus and are in our sandbox with `roundup(5)` defined.
+        # Now we source the file to bring it's tests into scope.
+        . $f
+
+        # The file has been sourced.  It it time to display the title.
+        echo "$roundup_desc"
+
+        # Determine the syllabus and administer each test. Score as we go.  The
+        # total grade will be determined once all suites pass.  Before each
+        # test, turn off automatic failure on command error so we can handle it
+        # as a test failure and not a script failure.
+        for t in $roundup_syllabus
+        do
+            printf "  $t: "
+
+            set +e +u
+            roundup_output=$( set -x ; (eval "$t") 2>&1 )
+            roundup_result=$?
+            set -e -u
+
+            if [ "$roundup_result" -ne 0 ]
+            then
+                roundup_failed=$(($roundup_failed + 1))
+                echo "[FAIL]"
+
+                echo "$roundup_output"                   |
+                sed '1,2d ; s/^++// ; s/^\(.*\)$/    ! \1/'
+            else
+                roundup_passed=$(($roundup_passed + 1))
+                echo "[PASS]"
+            fi
+        done
+    )
+done
+
+# Test Summary
+# ------------
+
+# Display the summary now that all tests are finished.
+echo "---------------------------------------"
+printf "Tests:  %3d | " $roundup_ntests
+printf "Passed: %3d | " $roundup_passed
+printf "Failed: %3d"    $roundup_failed
+echo
