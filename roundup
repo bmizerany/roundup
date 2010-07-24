@@ -1,4 +1,6 @@
 #!/bin/sh
+# [r5]: http://bmizerany.github.com/roundup/roundup.5.html
+#
 # _(c) 2010 Blake Mizerany - MIT License_
 #
 # Spray **roundup** on your shells to eliminate weeds and bugs.  If your shells
@@ -63,7 +65,7 @@ roundup_passed=0
 roundup_failed=0
 
 # Sandbox Test Runs
-# -------------------
+# -----------------
 
 # The above checks guarantee we have at least one test.  We can now move through
 # each specified test-file, determine it's syllabus, and administer each test
@@ -80,8 +82,8 @@ do
         # tailing -test.sh.
         roundup_desc=$(basename "$f" .sh | sed 's/-test$//g')
 
-        # `roundup(5)`
-        # ------------
+        # Define functions for
+        # [roundup(5)][r5]
 
         # A custom description is recommended, but optional.  Use `describe` to
         # set the description to something more meaningful.
@@ -97,7 +99,7 @@ do
             sed "s/\(it_[a-zA-Z0-9_]*\).*$/\1/g"
         )
 
-        # We have the syllabus and are in our sandbox with `roundup(5)` defined.
+        # We have the syllabus and are in our sandbox with [roundup(5)][r5] defined.
         # Now we source the file to bring it's tests into scope.
         . $f
 
