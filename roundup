@@ -23,7 +23,7 @@
 #     sudo make install
 #     # Alternatively, copy `roundup` wherever you like.
 #
-# __NOTE__:  Because test files are sourced into roundup, roundup prefixes it's
+# __NOTE__:  Because test plans are sourced into roundup, roundup prefixes it's
 # variable and function names with `roundup_` to avoid name collisions.  See
 # "Sandbox Test Runs" below for more insight.
 
@@ -40,7 +40,7 @@ set -u
 # when needed (i.e. The Tomayko Method).  See
 # [shocco](http://rtomayko.heroku.com/shocco) for more detail.
 
-#/ usage: roundup [file ...]
+#/ usage: roundup [plan ...]
 
 roundup_usage() {
     grep '^#/' <"$0" | cut -c4-
@@ -52,15 +52,15 @@ expr -- "$*" : ".*--help" >/dev/null && {
     exit 0
 }
 
-# Test at least one file was given
+# Test at least one plan was given
 test "$#" -eq 0 && {
     roundup_usage
     exit 1
 }
 
-# Store test files for looping and state assumptions about test scoring.  These
+# Store test plans for looping and state assumptions about test scoring.  These
 # will be recalculated as each test runs.
-roundup_files="$@"
+roundup_plans="$@"
 roundup_ntests=0
 roundup_passed=0
 roundup_failed=0
@@ -69,17 +69,17 @@ roundup_failed=0
 # -----------------
 
 # The above checks guarantee we have at least one test.  We can now move through
-# each specified test-file, determine it's test plan, and administer each test
+# each specified test plan, determine it's test plan, and administer each test
 # listed in a isolated sandbox.
-for f in "$roundup_files"
+for f in "$roundup_plans"
 do
-    # Create a sandbox, source the test file, run the tests, then leave
+    # Create a sandbox, source the test plan, run the tests, then leave
     # without a trace.
     (
         # Add to overall test count.
         roundup_ntests=$(($roundup_ntests + 1))
 
-        # Consider the description to be the `basename` of the file minus the
+        # Consider the description to be the `basename` of <plan> minus the
         # tailing -test.sh.
         roundup_desc=$(basename "$f" .sh | sed 's/-test$//g')
 
@@ -101,10 +101,10 @@ do
         )
 
         # We have the test plan and are in our sandbox with [roundup(5)][r5] defined.
-        # Now we source the file to bring it's tests into scope.
+        # Now we source the plan to bring it's tests into scope.
         . $f
 
-        # The file has been sourced.  It it time to display the title.
+        # The plan has been sourced.  It it time to display the title.
         echo "$roundup_desc"
 
         # Determine the test plan and administer each test. Score as we go.  The
