@@ -139,7 +139,7 @@ done
 # ------------
 
 # Display the summary now that all tests are finished.
-echo "---------------------------------------"
+echo "======================================="
 printf "Tests:  %3d | " $roundup_ntests
 printf "Passed: %3d | " $roundup_passed
 printf "Failed: %3d"    $roundup_failed
