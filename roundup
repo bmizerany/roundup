@@ -71,7 +71,7 @@ roundup_failed=0
 # The above checks guarantee we have at least one test.  We can now move through
 # each specified test plan, determine it's test plan, and administer each test
 # listed in a isolated sandbox.
-for f in "$roundup_plans"
+for roundup_p in "$roundup_plans"
 do
     # Create a sandbox, source the test plan, run the tests, then leave
     # without a trace.
@@ -81,7 +81,7 @@ do
 
         # Consider the description to be the `basename` of <plan> minus the
         # tailing -test.sh.
-        roundup_desc=$(basename "$f" .sh | sed 's/-test$//g')
+        roundup_desc=$(basename "$roundup_p" .sh | sed 's/-test$//g')
 
         # Define functions for
         # [roundup(5)][r5]
@@ -102,7 +102,7 @@ do
 
         # We have the test plan and are in our sandbox with [roundup(5)][r5] defined.
         # Now we source the plan to bring it's tests into scope.
-        . $f
+        . $roundup_p
 
         # The plan has been sourced.  It it time to display the title.
         echo "$roundup_desc"
@@ -111,12 +111,12 @@ do
         # total grade will be determined once all suites pass.  Before each
         # test, turn off automatic failure on command error so we can handle it
         # as a test failure and not a script failure.
-        for t in $roundup_plan
+        for roundup_t in $roundup_plan
         do
-            printf "  $t: "
+            printf "  $roundup_t: "
 
             set +e +u
-            roundup_output=$( set -x ; (eval "$t") 2>&1 )
+            roundup_output=$( set -x ; (eval "$roundup_t") 2>&1 )
             roundup_result=$?
             set -e -u
 
