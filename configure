@@ -1,0 +1,224 @@
+#!/bin/sh
+#/ Usage: ./configure [OPTION]... [VAR=VALUE]...
+#/ configure shocco for installation on this system.
+#/
+#/ Options
+#/   --development            configure for local working copy development
+#/
+#/ Installation locations
+#/   --prefix=PREFIX          install files in PREFIX [/usr/local]
+#/   --bindir=DIR             user executables [PREFIX/bin]
+#/   --sysconfdir=DIR         system configuration files [PREFIX/etc]
+#/   --datarootdir=DIR        data file root [PREFIX/share]
+#/   --datadir=DIR            data files [DATAROOTDIR]
+#/   --mandir=DIR             man documentation [DATAROOTDIR/man]
+
+warn () { echo "$@" 1>&2; }
+longarg () { echo "$1" | sed "s/^$2=//"; }
+
+# Argument Parsing
+# ----------------
+
+sourcedir="$(cd "$(dirname $0)" && pwd)"
+develmode=false
+
+while test $# -gt 0
+do
+    case "$1" in
+    # Options
+    --develop|--development)
+                       prefix="$sourcedir/work"
+                       bindir="$sourcedir"
+                       libexecdir="$sourcedir"
+                       localstatedir="$prefix"
+                       sysconfdir="$sourcedir"
+                       datarootdir="$sourcedir"
+                       datadir="$sourcedir"
+                       mandir="$sourcedir/man"
+                       develmode=true
+                       shift
+                       ;;
+
+    # Installation locations:
+    --prefix)          prefix="$2";shift;shift;;
+    --prefix=*)        prefix="$(longarg "$1" --prefix)";shift;;
+    --bindir)          bindir="$2";shift;shift;;
+    --bindir=*)        bindir="$(longarg "$1" --bindir)";shift;;
+    --libexecdir)      libexecdir="$2";shift;shift;;
+    --libexecdir=*)    libexecdir="$(longarg "$1" --libexecdir)";shift;;
+    --localstatedir)   localstatedir="$2";shift;shift;;
+    --localstatedir=*) localstatedir="$(longarg "$1" --localstatedir)";shift;;
+    --sysconfdir)      sysconfdir="$2";shift;shift;;
+    --sysconfdir=*)    sysconfdir="$(longarg "$1" --sysconfdir)";shift;;
+    --datarootdir)     datarootdir="$2";shift;shift;;
+    --datarootdir=*)   datarootdir="$(longarg "$1" --datarootdir)";shift;;
+    --datadir)         datadir="$2";shift;shift;;
+    --datadir=*)       datadir="$(longarg "$1" --datadir)";shift;;
+    --mandir)          mandir="$2";shift;shift;;
+    --mandir=*)        mandir="$(longarg "$1" --mandir)";shift;;
+
+    # Environment variables passed on command line:
+    [A-Z]*=*)       name="${1%%=*}"
+                    value="${1#*=}"
+                    shift
+                    eval "${name}='${value}'";;
+
+    # Bail out with usage otherwise.
+    *)              grep '^#/' < "$0" | cut -c4-
+                    exit 2;;
+    esac
+done
+
+# Finding Stuff Functions
+# -----------------------
+
+looking () { printf "looking $(echo $@)"; }
+missing () { printf " (nope)\n"; }
+ok ()      { printf " OK\n"; }
+
+found () {
+    printf " (${1:-found})"
+    test -n "$2" && printf " $2"
+    printf "\n"
+}
+
+have () {
+    for f in "$@"
+    do
+        # if a whole command line was given, assume it exists
+        expr "$f" : '..* ' >/dev/null && {
+            echo "$f"
+            return 0
+        }
+
+        # look for the path with command(1)
+        _havepath=$(command -v "$f") || { continue; }
+        echo "$_havepath"
+        return 0
+    done
+    return 1
+}
+
+# Usage: stdutil <name> <variable> <path>...
+stdutil () {
+    looking "for $1"; shift
+    _varname="$1";    shift
+    if _path=$(have "$@")
+    then found "$_path"
+         reconf $_varname "$_path"
+    else missing
+         reconf $_varname ""
+    fi
+    return 0
+}
+
+# Build up lists of config stuff to write to config.sh and config.mk
+SHCONFIG=
+MAKECONFIG=
+reconf () {
+    SHCONFIG="$SHCONFIG
+$1='$2'"
+    eval "$SHCONFIG"
+    MAKECONFIG="$MAKECONFIG
+$1 = $2"
+}
+
+UNAME=$(uname 2>/dev/null)
+HOST=$(hostname 2>/dev/null)
+TIME=$(date 2>/dev/null)
+
+: ${prefix:="/usr/local"}
+: ${exec_prefix:="$prefix"}
+: ${bindir:="$exec_prefix/bin"}
+: ${libexecdir:="$exec_prefix/libexec"}
+: ${localstatedir:="$prefix/var"}
+: ${sysconfdir:="$prefix/etc"}
+: ${datarootdir:="$prefix/share"}
+: ${datadir:="$datarootdir"}
+: ${mandir:="$datadir/man"}
+: ${docdir:="$datadir/doc"}
+
+reconf prefix        "$prefix"
+reconf exec_prefix   "$exec_prefix"
+reconf bindir        "$bindir"
+reconf libexecdir    "$libexecdir"
+reconf localstatedir "$localstatedir"
+reconf sysconfdir    "$sysconfdir"
+reconf datarootdir   "$datarootdir"
+reconf datadir       "$datadir"
+reconf mandir        "$mandir"
+reconf develmode     "$develmode"
+
+PATH="$(getconf PATH 2>/dev/null || echo /usr/bin:/bin)"
+PATH="$bindir:$PATH"
+
+test -d "/usr/local" &&
+PATH="$PATH:/usr/local/bin"
+
+test "$UNAME" = Darwin -a -d /opt/local &&
+PATH="$PATH:/opt/local/bin"
+
+test -d /usr/pkg &&
+PATH="$PATH:/usr/pkg/bin"
+
+echo "building for ${UNAME:-unknown}" \
+     "on ${HOST:-localhost}"          \
+     "at ${TIME:-a time unknown}"
+
+looking "for /bin/sh"
+SH=$(have /bin/sh) && {
+    if expr "$("$SH" --version 2>/dev/null)" : '.*bash' >/dev/null
+    then
+        found '' "oh ick, it looks like bash"
+    else
+        found
+    fi
+} || missing
+reconf SHELL "$SH"
+
+stdutil bash       BASH       /bin/bash /usr/bin/bash bash
+stdutil dash       DASH       /bin/dash /usr/bin/dash dash
+
+if test "$UNAME" = Darwin
+then stdutil open       BROWSER    /usr/bin/open
+else stdutil xdg-open   XDG_OPEN   xdg-open
+     stdutil firefox    FIREFOX    firefox
+     reconf BROWSER "${XDG_OPEN:-$FIREFOX}"
+fi
+
+stdutil ronn       RONN       ronn
+stdutil shocco     SHOCCO     shocco
+
+set -e
+
+eval "$SHCONFIG"
+
+test -z "$RONN" &&
+    warn "warn: ronn is not installed. cannot rebuild manpages. no biggie."
+
+test -z "$SHOCCO" &&
+    warn "warn: shocco is not installed. cannot rebuild manpages. no biggie."
+
+echo "okay, looks like you have everything we need. generating config files."
+
+echo writing config.mk...
+cat <<EOF > config.mk
+$MAKECONFIG
+EOF
+
+echo writing config.sh...
+cat <<EOF > config.sh
+# utility locations
+$SHCONFIG
+EOF
+
+cat <<MESSAGE
+configuration:
+  bindir:        $bindir
+  mandir:        $mandir
+MESSAGE
+
+if $develmode
+then echo "okay. ready for development. run \`make' or \`make auto' to build."
+else echo "okay. run \`make' to build and \`make install' to install."
+fi

@@ -1,0 +1,60 @@
+roundup(1) -- eliminates bugs and weeds from shell scripts
+==========================================================
+
+## SYNOPSIS
+
+  `roundup` [file ...]
+
+## DESCRIPTION
+
+`roundup` will enumerate, isolate, and execute tests in shell <file>, as defined by
+roundup(5).  If all tests pass, the shell is roundup-ready.
+
+## OPTIONS
+
+  * `--help`:
+    Display usage and exit.
+
+  * `--version`:
+    Display version and exit.
+
+## BEHAVIOUR
+
+`roundup` run with no <file>(s) specified will attempt to run all files matching
+$PWD/t/*-test.sh
+
+## EXIT STATUS
+
+* 1:
+  Argument or invocation error.
+* 2:
+  Failed test.
+* 127-255:
+  Abnormal error or test file error.
+
+## BUGS
+
+There will be bugs.  Please report them at
+http://github.com/bmizerany/roundup/issues
+
+## AUTHOR
+
+Blake Mizerany (bmizerany)
+
+## COPYRIGHT
+
+(c) 2010 Blake Mizerany
+
+`roundup` is licenced under the MIT open-source licence.
+
+## SEE ALSO
+
+roundup(5), test(1)
+
+## NOTES
+
+Unit Testing:
+  http://en.wikipedia.org/wiki/Unit_testing
+
+Behaviour Driven Development:
+  http://behaviour-driven.org/Introduction
