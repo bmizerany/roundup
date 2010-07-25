@@ -1,5 +1,7 @@
 #!/bin/sh
-# [r5]: http://bmizerany.github.com/roundup/roundup.5.html
+# [r5]: roundup.5.html
+# [r1t]: roundup-1-test.sh.html
+# [r5t]: roundup-5-test.sh.html
 #
 # _(c) 2010 Blake Mizerany - MIT License_
 #
@@ -7,12 +9,11 @@
 # survive **roundup**'s deathly toxic properties, they are considered
 # roundup-ready.
 #
-# roundup reads shell scripts to form test plans (or syllabuses).  Each
-# syllabus is sourced into a sandbox where each test is executed.
+# roundup reads shell scripts to form test plans.  Each
+# test plan is sourced into a sandbox where each test is executed.
 #
-# An example syllabus:
-#
-# TODO:  Write an example
+# See [roundup-1-test.sh.html][r1t] or [roundup-5-test.sh.html][r5t] for example
+# test plans.
 #
 # __Install__
 #
@@ -68,16 +69,16 @@ roundup_failed=0
 # -----------------
 
 # The above checks guarantee we have at least one test.  We can now move through
-# each specified test-file, determine it's syllabus, and administer each test
+# each specified test-file, determine it's test plan, and administer each test
 # listed in a isolated sandbox.
 for f in "$roundup_files"
 do
-    # Increment knowns
-    roundup_ntests=$(($roundup_ntests + 1))
-
-    # Create a sandbox, source test file, run tests, then leave
+    # Create a sandbox, source the test file, run the tests, then leave
     # without a trace.
     (
+        # Add to overall test count.
+        roundup_ntests=$(($roundup_ntests + 1))
+
         # Consider the description to be the `basename` of the file minus the
         # tailing -test.sh.
         roundup_desc=$(basename "$f" .sh | sed 's/-test$//g')
@@ -91,26 +92,26 @@ do
             roundup_desc="$*"
         }
 
-        # Seek test methods and aggregate their names, forming a syllabus.  This
+        # Seek test methods and aggregate their names, forming a test plan.  This
         # is done before populating the sandbox with tests to avoid odd
         # conflicts.
-        roundup_syllabus=$(
+        roundup_plan=$(
             grep "^it_.*()" $1                       |
             sed "s/\(it_[a-zA-Z0-9_]*\).*$/\1/g"
         )
 
-        # We have the syllabus and are in our sandbox with [roundup(5)][r5] defined.
+        # We have the test plan and are in our sandbox with [roundup(5)][r5] defined.
         # Now we source the file to bring it's tests into scope.
         . $f
 
         # The file has been sourced.  It it time to display the title.
         echo "$roundup_desc"
 
-        # Determine the syllabus and administer each test. Score as we go.  The
+        # Determine the test plan and administer each test. Score as we go.  The
         # total grade will be determined once all suites pass.  Before each
         # test, turn off automatic failure on command error so we can handle it
         # as a test failure and not a script failure.
-        for t in $roundup_syllabus
+        for t in $roundup_plan
         do
             printf "  $t: "
 
