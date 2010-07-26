@@ -75,6 +75,12 @@ roundup_red=$(echo -e "\033[31m")
 roundup_grn=$(echo -e "\033[32m")
 roundup_mag=$(echo -e "\033[35m")
 
+roundup_trace() {
+    echo "$1"                                       |
+    sed -e '1,2d ; s/^++// ; s/^\(.*\)$/    ! \1/'  |
+    sed -e "\$s/\(.*\)/$roundup_mag\1$roundup_clr/"
+}
+
 roundup_pass() {
     echo $roundup_grn $1 $roundup_clr
 }
@@ -142,10 +148,7 @@ do
             then
                 roundup_failed=$(($roundup_failed + 1))
                 roundup_fail "[FAIL]"
-
-                echo "$roundup_output"                   |
-                sed -e '1,2d ; s/^++// ; s/^\(.*\)$/    ! \1/' |
-                sed -e "\$s/\(.*\)/$roundup_mag\1$roundup_clr/"
+                roundup_trace "$roundup_output"
             else
                 roundup_passed=$(($roundup_passed + 1))
                 roundup_pass "[PASS]"
