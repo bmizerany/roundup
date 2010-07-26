@@ -140,8 +140,10 @@ do
             printf "  $roundup_t: "
 
             set +e
+            before
             roundup_output=$( set -x -e; (eval "$roundup_t") 2>&1 )
             roundup_result=$?
+            after
             set -e
 
             if [ "$roundup_result" -ne 0 ]
