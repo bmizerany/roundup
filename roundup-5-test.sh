@@ -38,8 +38,8 @@ after() {
     rm -f foo.txt
 }
 
-# Test basic success and failure conditions.  These are intentially _silly_
-# tests to keep their results determinstic.  `it_fails` **will** fail, causing the
+# Test basic success and failure conditions.  These are intentionally _silly_
+# tests to keep their results deterministic.  `it_fails` **will** fail, causing the
 # whole plan to fail.
 #
 # __NOTE__:  the results of these, and all of the following tests are checked in
@@ -58,15 +58,30 @@ it_runs_before() {
 }
 
 # Start the `after` test.  Drop a file and check it really exists.  The sister
-# test will check the `rm -f` in `after` ran by testing it no longer exists.
-it_runs_after_part_1() {
+# test checks if `after` cleans it up.
+it_runs_after_a_test_passes_part_1() {
     touch foo.txt
     test -f foo.txt
 }
 
 # Test the file dropped above is no longer on disk.  If it doesn't exist, we
 # know `after` ran.
-it_runs_after_part_2() {
+it_runs_after_a_test_passes_part_2() {
+    test "!" -f foo.txt
+}
+
+# We want `after` to run if a test passes or fails.  Leaving behind debris isn't
+# good practice.  This test will drop a file to disk then intentionally fail.
+# It's sister test makes sure the file no longer exists, proving `after` ran.
+it_runs_after_if_a_test_fails_part_1() {
+    touch foo.txt
+    test -f foo.txt
+    test 1 -eq 2
+}
+
+# Start the `after` test.  Drop a file and check it really exists.  The sister
+# test checks if `after` cleans it up.
+it_runs_after_if_a_test_fails_part_2() {
     test "!" -f foo.txt
 }
 
