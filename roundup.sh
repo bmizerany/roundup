@@ -69,6 +69,20 @@ roundup_ntests=0
 roundup_passed=0
 roundup_failed=0
 
+# Colors for output
+roundup_clr=$(echo -e "\033[m")
+roundup_red=$(echo -e "\033[31m")
+roundup_grn=$(echo -e "\033[32m")
+roundup_mag=$(echo -e "\033[35m")
+
+roundup_pass() {
+    echo $roundup_grn $1 $roundup_clr
+}
+
+roundup_fail() {
+    echo $roundup_red $1 $roundup_clr
+}
+
 # Sandbox Test Runs
 # -----------------
 
@@ -127,13 +141,14 @@ do
             if [ "$roundup_result" -ne 0 ]
             then
                 roundup_failed=$(($roundup_failed + 1))
-                echo "[FAIL]"
+                roundup_fail "[FAIL]"
 
                 echo "$roundup_output"                   |
-                sed '1,2d ; s/^++// ; s/^\(.*\)$/    ! \1/'
+                sed -e '1,2d ; s/^++// ; s/^\(.*\)$/    ! \1/' |
+                sed -e "\$s/\(.*\)/$roundup_mag\1$roundup_clr/"
             else
                 roundup_passed=$(($roundup_passed + 1))
-                echo "[PASS]"
+                roundup_pass "[PASS]"
             fi
         done
     )
