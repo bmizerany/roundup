@@ -119,10 +119,10 @@ do
         do
             printf "  $roundup_t: "
 
-            set +e +u
-            roundup_output=$( set -x ; (eval "$roundup_t") 2>&1 )
+            set +e
+            roundup_output=$( set -x -e; (eval "$roundup_t") 2>&1 )
             roundup_result=$?
-            set -e -u
+            set -e
 
             if [ "$roundup_result" -ne 0 ]
             then
