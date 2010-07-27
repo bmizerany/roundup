@@ -92,7 +92,7 @@ fi
 
 # Outputs a trimmed, highlighted trace taken given as the first argument.
 roundup_trace() {
-    echo "$1"                                    |
+    printf "$1\n"                                |
     # Delete the first two lines that represent roundups execution of the
     # test function.  They are useless to the user.
     sed '1,2d'                                   |
@@ -107,11 +107,11 @@ roundup_trace() {
 }
 
 roundup_pass() {
-    echo "$roundup_grn [PASS] $roundup_clr"
+    printf "$roundup_grn [PASS] $roundup_clr\n"
 }
 
 roundup_fail() {
-    echo "$roundup_red [FAIL] $roundup_clr"
+    printf "$roundup_red [FAIL] $roundup_clr\n"
 }
 
 # Sandbox Test Runs
@@ -169,7 +169,7 @@ do
         . $roundup_p
 
         # The plan has been sourced.  It it time to display the title.
-        echo "$roundup_desc"
+        printf "$roundup_desc\n"
 
         # Determine the test plan and administer each test. Score as we go.  The
         # total grade will be determined once all suites pass.  Before each
@@ -212,8 +212,8 @@ done
 # ------------
 
 # Display the summary now that all tests are finished.
-echo "======================================="
+printf "=======================================\n"
 printf "Tests:  %3d | " $roundup_ntests
 printf "Passed: %3d | " $roundup_passed
 printf "Failed: %3d"    $roundup_failed
-echo
+printf "\n"
