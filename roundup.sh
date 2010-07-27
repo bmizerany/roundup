@@ -72,21 +72,22 @@ roundup_failed=0
 # Colors for output
 # -----------------
 
-# Start by assuming we're not writing to a terminal (tty) and initialize the
-# color variables to be empty so they're interpolated as such.
-roundup_clr=
-roundup_red=
-roundup_grn=
-roundup_mag=
-
-# If we are writing to a tty device, we can use colors.
-# Possible TODO: Add a `--color--always` switch.
+# If we are writing to a tty device or we've been asked to always show colors,
+# we use colors.
 if test -t 1
 then
     roundup_clr=$(echo -e "\033[m")
     roundup_red=$(echo -e "\033[31m")
     roundup_grn=$(echo -e "\033[32m")
     roundup_mag=$(echo -e "\033[35m")
+
+# Otherwise, set the color variables to be empty so the are interpolated as
+# such.
+else
+    roundup_clr=
+    roundup_red=
+    roundup_grn=
+    roundup_mag=
 fi
 
 roundup_trace() {
