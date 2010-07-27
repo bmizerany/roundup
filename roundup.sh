@@ -73,13 +73,13 @@ roundup_failed=0
 # -----------------
 
 # Start by assuming we're not writing to a terminal (tty) and initialize the
-# colro variables to be empty so they're interoplated as such.
+# color variables to be empty so they're interpolated as such.
 roundup_clr=
 roundup_red=
 roundup_grn=
 roundup_mag=
 
-# If we are writting to a tty device, we can use colors.
+# If we are writing to a tty device, we can use colors.
 # Possible TODO: Add a `--color--always` switch.
 if test -t 1
 then
@@ -173,7 +173,7 @@ do
             # Set `-xe` before the `eval` in the subshell.  We want the test to
             # fail fast to allow for more accurate output of where things went
             # wrong but not in _our_ process because a failed test should not
-            # immediatly fail roundup.
+            # immediately fail roundup.
             #
             # This can cause a false positive it the `grep` for test names is
             # mislead by some odd commenting or formating.  If there is a way to
