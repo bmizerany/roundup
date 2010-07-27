@@ -45,7 +45,7 @@ test: roundup
 
 doc: $(DOCS)
 
-$(CODE_DOCS): $(SCRIPTS)
+%.sh.html: %.sh
 ifdef SHOCCO
 	$(SHOCCO) $< > $@
 endif
