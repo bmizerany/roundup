@@ -107,11 +107,11 @@ roundup_trace() {
 }
 
 roundup_pass() {
-    echo $roundup_grn $1 $roundup_clr
+    echo "$roundup_grn [PASS] $roundup_clr"
 }
 
 roundup_fail() {
-    echo $roundup_red $1 $roundup_clr
+    echo "$roundup_red [FAIL] $roundup_clr"
 }
 
 # Sandbox Test Runs
@@ -198,11 +198,11 @@ do
             if [ "$roundup_result" -ne 0 ]
             then
                 roundup_failed=$(($roundup_failed + 1))
-                roundup_fail "[FAIL]"
+                roundup_fail
                 roundup_trace "$roundup_output"
             else
                 roundup_passed=$(($roundup_passed + 1))
-                roundup_pass "[PASS]"
+                roundup_pass
             fi
         done
     )
