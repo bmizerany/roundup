@@ -34,10 +34,14 @@ build: roundup
 	echo "run \`make install' to install under $(bindir) ..."
 	echo "or, just copy the \`$(sourcedir)/roundup' file where you need it."
 
-roundup: roundup.sh
+roundup: roundup.sh FORCE
 	$(SHELL) -n roundup.sh
 	cp roundup.sh roundup
 	chmod 0755 roundup
+
+test: roundup
+	./roundup roundup-5-test.sh
+	#./roundup roundup-1-test.sh
 
 doc: $(DOCS)
 
@@ -82,6 +86,8 @@ clean:
 distclean: clean
 	rm -f $(DISTFILES)
 
+.PHONY: FORCE
+
 .SUFFIXES:
 
-.SILENT: build sup roundup
+.SILENT: build sup roundup test
