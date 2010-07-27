@@ -76,10 +76,10 @@ roundup_failed=0
 # we use colors.
 if test -t 1
 then
-    roundup_clr=$(echo -e "\033[m")
-    roundup_red=$(echo -e "\033[31m")
-    roundup_grn=$(echo -e "\033[32m")
-    roundup_mag=$(echo -e "\033[35m")
+    roundup_clr=$(printf "\033[m")
+    roundup_red=$(printf "\033[31m")
+    roundup_grn=$(printf "\033[32m")
+    roundup_mag=$(printf "\033[35m")
 
 # Otherwise, set the color variables to be empty so the are interpolated as
 # such.
