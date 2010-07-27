@@ -130,7 +130,7 @@ do
 
         # Consider the description to be the `basename` of <plan> minus the
         # tailing -test.sh.
-        roundup_desc=$(basename "$roundup_p" .sh | sed 's/-test$//g')
+        roundup_desc=$(basename "$roundup_p" -test.sh)
 
         # Define functions for
         # [roundup(5)][r5]
