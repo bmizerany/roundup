@@ -90,10 +90,20 @@ else
     roundup_mag=
 fi
 
+# Outputs a trimmed, highlighted trace taken given as the first argument.
 roundup_trace() {
-    echo "$1"                                       |
-    sed -e '1,2d ; s/^++// ; s/^\(.*\)$/    ! \1/'  |
-    sed -e "\$s/\(.*\)/$roundup_mag\1$roundup_clr/"
+    echo "$1"                                    |
+    # Delete the first two lines that represent roundups execution of the
+    # test function.  They are useless to the user.
+    sed '1,2d'                                   |
+    # Trim the two left most `+` signs.  They represent the depth at which
+    # roundup executed the function.  They also, are useless and confusing.
+    sed 's/^++//'                                |
+    # Indent the output by 4 spaces to align under the test name in the
+    # summary.
+    sed 's/^\(.*\)$/    ! \1/'                   |
+    # Highlight the last line to bring notice to where the error occurred.
+    sed "\$s/\(.*\)/$roundup_mag\1$roundup_clr/"
 }
 
 roundup_pass() {
