@@ -154,16 +154,19 @@ do
             roundup_desc="$*"
         }
 
-        # Seek test methods and aggregate their names, forming a test plan.  This
-        # is done before populating the sandbox with tests to avoid odd
+        # Seek test methods and aggregate their names, forming a test plan.
+        # This is done before populating the sandbox with tests to avoid odd
         # conflicts.
+
+        # TODO:  I want to do this with sed only.  Please send a patch if you
+        # know a cleaner way.
         roundup_plan=$(
             grep "^it_.*()" $roundup_p           |
             sed "s/\(it_[a-zA-Z0-9_]*\).*$/\1/g"
         )
 
-        # We have the test plan and are in our sandbox with [roundup(5)][r5] defined.
-        # Now we source the plan to bring it's tests into scope.
+        # We have the test plan and are in our sandbox with [roundup(5)][r5]
+        # defined.  Now we source the plan to bring it's tests into scope.
         . $roundup_p
 
         # Consider `before` and `after` usable if present
@@ -187,10 +190,10 @@ do
 
                 $roundup_before
                 set +e
-                # Set `-xe` before the `eval` in the subshell.  We want the test to
-                # fail fast to allow for more accurate output of where things went
-                # wrong but not in _our_ process because a failed test should not
-                # immediately fail roundup.
+                # Set `-xe` before the `eval` in the subshell.  We want the test
+                # to fail fast to allow for more accurate output of where things
+                # went wrong but not in _our_ process because a failed test
+                # should not immediately fail roundup.
                 roundup_output=$( set -xe; (eval "$roundup_t") 2>&1 )
                 roundup_result=$?
                 set -e
