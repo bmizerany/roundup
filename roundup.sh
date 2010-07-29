@@ -114,6 +114,15 @@ roundup_fail() {
     printf "$roundup_red [FAIL] $roundup_clr\n"
 }
 
+roundup_cfunc() {
+    if [ "$(type -t "$1")" = function ]
+    then
+        printf "$1"
+    else
+        printf "true"
+    fi
+}
+
 # Sandbox Test Runs
 # -----------------
 
@@ -149,24 +158,13 @@ do
             sed "s/\(it_[a-zA-Z0-9_]*\).*$/\1/g"
         )
 
-        # Find out if `before` and `after` are present.
-        # This is crude way to do this.  I've tried to find a good way of know
-        # if a function is defined or not, but with no success.  If anyone knows
-        # a _cleaner_ way, I'm all ears!
-        #
-        # I'm using the || operator to guarantee success.  I don't want this to
-        # fail.  I could wrap this in a `set +e .. -e` but that seems just as
-        # gross.
-        grep -q "^before *()\W" $roundup_p &&
-            roundup_before=t ||
-            roundup_before=
-        grep -q "^after *()\W" $roundup_p  &&
-            roundup_after=t ||
-            roundup_after=
-
         # We have the test plan and are in our sandbox with [roundup(5)][r5] defined.
         # Now we source the plan to bring it's tests into scope.
         . $roundup_p
+
+        # Consider `before` and `after` usable if present
+        roundup_before=$(roundup_cfunc before)
+        roundup_after=$(roundup_cfunc after)
 
         # The plan has been sourced.  It it time to display the title.
         printf "$roundup_desc\n"
@@ -179,8 +177,8 @@ do
         do
             printf "  $roundup_t: "
 
+            $roundup_before
             set +e
-            [ -n "$roundup_before" ] && before
             # Set `-xe` before the `eval` in the subshell.  We want the test to
             # fail fast to allow for more accurate output of where things went
             # wrong but not in _our_ process because a failed test should not
@@ -192,8 +190,8 @@ do
             # it here for parity before the eval.
             roundup_output=$( set -xe; (eval "$roundup_t") 2>&1 )
             roundup_result=$?
-            [ -n "$roundup_after" ] && after
             set -e
+            $roundup_after
 
             if [ "$roundup_result" -ne 0 ]
             then
