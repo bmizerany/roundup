@@ -175,23 +175,23 @@ do
         # as a test failure and not a script failure.
         for roundup_t in $roundup_plan
         do
-            printf "  $roundup_t: "
+            # Avoid executing a non-function by checking the name we have is, in
+            # fact, a function.
+            if type -t $roundup_t >/dev/null
+            then
+                printf "  $roundup_t: "
 
-            $roundup_before
-            set +e
-            # Set `-xe` before the `eval` in the subshell.  We want the test to
-            # fail fast to allow for more accurate output of where things went
-            # wrong but not in _our_ process because a failed test should not
-            # immediately fail roundup.
-            #
-            # This can cause a false positive it the `grep` for test names is
-            # mislead by some odd commenting or formating.  If there is a way to
-            # know if a function is defined, as mentioned above, I want to use
-            # it here for parity before the eval.
-            roundup_output=$( set -xe; (eval "$roundup_t") 2>&1 )
-            roundup_result=$?
-            set -e
-            $roundup_after
+                $roundup_before
+                set +e
+                # Set `-xe` before the `eval` in the subshell.  We want the test to
+                # fail fast to allow for more accurate output of where things went
+                # wrong but not in _our_ process because a failed test should not
+                # immediately fail roundup.
+                roundup_output=$( set -xe; (eval "$roundup_t") 2>&1 )
+                roundup_result=$?
+                set -e
+                $roundup_after
+            fi
 
             if [ "$roundup_result" -ne 0 ]
             then
