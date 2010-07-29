@@ -114,8 +114,12 @@ roundup_fail() {
     printf "$roundup_red [FAIL] $roundup_clr\n"
 }
 
+roundup_isfunc() {
+    [ "$(type -t "$1")" = function ] && true || false
+}
+
 roundup_cfunc() {
-    if [ "$(type -t "$1")" = function ]
+    if roundup_isfunc "$1"
     then
         printf "$1"
     else
@@ -177,7 +181,7 @@ do
         do
             # Avoid executing a non-function by checking the name we have is, in
             # fact, a function.
-            if type -t $roundup_t >/dev/null
+            if roundup_isfunc $roundup_t
             then
                 printf "  $roundup_t: "
 
