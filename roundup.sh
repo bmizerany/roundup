@@ -120,7 +120,7 @@ roundup_fail() {
 # The above checks guarantee we have at least one test.  We can now move through
 # each specified test plan, determine it's test plan, and administer each test
 # listed in a isolated sandbox.
-for roundup_p in "$roundup_plans"
+for roundup_p in $roundup_plans
 do
     # Create a sandbox, source the test plan, run the tests, then leave
     # without a trace.
