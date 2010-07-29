@@ -56,15 +56,15 @@ expr -- "$*" : ".*--help" >/dev/null && {
     exit 0
 }
 
-# Test at least one plan was given
-test "$#" -eq 0 && {
-    roundup_usage
-    exit 1
-}
-
 # Store test plans for looping and state assumptions about test scoring.  These
 # will be recalculated as each test runs.
-roundup_plans="$@"
+if [ "$#" -gt "0" ]
+then
+    roundup_plans="$@"
+else
+    roundup_plans="$(ls *-test.sh)"
+fi
+
 roundup_ntests=0
 roundup_passed=0
 roundup_failed=0
