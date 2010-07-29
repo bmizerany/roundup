@@ -43,5 +43,5 @@ describe "roundup(1) testing roundup(5)"
 
 it_displays_the_title() {
     first_line=$(echo "$(r5t)" | head -n 1)
-    test $first_line "=" "roundup(5)"
+    test "$first_line" "=" "roundup(5)"
 }

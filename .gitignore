@@ -4,3 +4,4 @@
 *.[1-9]
 config.*
 roundup
+.roundup.*

@@ -65,34 +65,14 @@ else
     roundup_plans="$(ls *-test.sh)"
 fi
 
-roundup_ntests=0
-roundup_passed=0
-roundup_failed=0
-
-# Colors for output
-# -----------------
-
-# If we are writing to a tty device or we've been asked to always show colors,
-# we use colors.
-if test -t 1
-then
-    roundup_clr=$(printf "\033[m")
-    roundup_red=$(printf "\033[31m")
-    roundup_grn=$(printf "\033[32m")
-    roundup_mag=$(printf "\033[35m")
-
-# Otherwise, set the color variables to be empty so the are interpolated as
-# such.
-else
-    roundup_clr=
-    roundup_red=
-    roundup_grn=
-    roundup_mag=
-fi
+# Create a temporary storage place where the each tests output will be saved for
+# later display if needed.
+roundup_tmp="$PWD/.roundup.$$"
+rm -rf $roundup_tmp
+mkdir $roundup_tmp
 
 # Outputs a trimmed, highlighted trace taken given as the first argument.
 roundup_trace() {
-    printf "$1\n"                                |
     # Delete the first two lines that represent roundups execution of the
     # test function.  They are useless to the user.
     sed '1,2d'                                   |
@@ -103,15 +83,7 @@ roundup_trace() {
     # summary.
     sed 's/^\(.*\)$/    ! \1/'                   |
     # Highlight the last line to bring notice to where the error occurred.
-    sed "\$s/\(.*\)/$roundup_mag\1$roundup_clr/"
-}
-
-roundup_pass() {
-    printf "$roundup_grn [PASS] $roundup_clr\n"
-}
-
-roundup_fail() {
-    printf "$roundup_red [FAIL] $roundup_clr\n"
+    sed "\$s/\(.*\)/$mag\1$clr/"
 }
 
 roundup_isfunc() {
@@ -120,11 +92,66 @@ roundup_isfunc() {
 
 roundup_cfunc() {
     if roundup_isfunc "$1"
-    then
-        printf "$1"
-    else
-        printf "true"
+    then printf "$1"
+    else printf "true"
     fi
+}
+
+# Displays the formatted results of a test.
+# usage: roundup_run <name> <p|f>
+roundup_summarize() {
+    set -e
+    # Colors for output
+    # -----------------
+
+    # If we are writing to a tty device or we've been asked to always show colors,
+    # we use colors.
+    if test -t 1
+    then
+        red=$(printf "\033[31m")
+        grn=$(printf "\033[32m")
+        mag=$(printf "\033[35m")
+        clr=$(printf "\033[m")
+    fi
+
+    export red grn mag clr
+
+    # Track the total number of tests, which passed, and which failed.
+    ntests=0
+    passed=0
+    failed=0
+
+    while read status name
+    do
+        case $status in
+        p)
+            ntests=$(expr $ntests + 1)
+            passed=$(expr $passed + 1)
+            printf "  $name: "
+            printf "$grn[PASS]$clr\n"
+            ;;
+        f)
+            ntests=$(expr $ntests + 1)
+            failed=$(expr $failed + 1)
+            printf "  $name: "
+            printf "$red[FAIL]$clr\n"
+            roundup_trace < $roundup_tmp/$name
+            ;;
+        d)
+            printf "$name\n"
+            ;;
+        esac
+    done
+
+    # Test Summary
+    # ------------
+
+    # Display the summary now that all tests are finished.
+    printf "=======================================\n"
+    printf "Tests:  %3d | " $ntests
+    printf "Passed: %3d | " $passed
+    printf "Failed: %3d"    $failed
+    printf "\n"
 }
 
 # Sandbox Test Runs
@@ -138,9 +165,6 @@ do
     # Create a sandbox, source the test plan, run the tests, then leave
     # without a trace.
     (
-        # Add to overall test count.
-        roundup_ntests=$(($roundup_ntests + 1))
-
         # Consider the description to be the `basename` of <plan> minus the
         # tailing -test.sh.
         roundup_desc=$(basename "$roundup_p" -test.sh)
@@ -150,6 +174,7 @@ do
 
         # A custom description is recommended, but optional.  Use `describe` to
         # set the description to something more meaningful.
+        # TODO: reimplement this.
         describe() {
             roundup_desc="$*"
         }
@@ -169,59 +194,58 @@ do
         # defined.  Now we source the plan to bring it's tests into scope.
         . $roundup_p
 
+        # Output the description signal
+        roundup_desc=$(printf "$roundup_desc" | tr "\n" " ")
+        printf "d $roundup_desc\n"
+
         # Consider `before` and `after` usable if present
         roundup_before=$(roundup_cfunc before)
         roundup_after=$(roundup_cfunc after)
-
-        # The plan has been sourced.  It it time to display the title.
-        printf "$roundup_desc\n"
 
         # Determine the test plan and administer each test. Score as we go.  The
         # total grade will be determined once all suites pass.  Before each
         # test, turn off automatic failure on command error so we can handle it
         # as a test failure and not a script failure.
-        for roundup_t in $roundup_plan
+        for roundup_test_name in $roundup_plan
         do
             # Avoid executing a non-function by checking the name we have is, in
             # fact, a function.
-            if roundup_isfunc $roundup_t
+            if roundup_isfunc $roundup_test_name
             then
-                printf "  $roundup_t: "
-
                 # If before wasn't defined, then this is `true`.
                 $roundup_before
-                set +e
+
                 # Set `-xe` before the `eval` in the subshell.  We want the test
                 # to fail fast to allow for more accurate output of where things
                 # went wrong but not in _our_ process because a failed test
-                # should not immediately fail roundup.
-                roundup_output=$( set -xe; (eval "$roundup_t") 2>&1 )
+                # should not immediately fail roundup.  Each tests trace output
+                # is saved in temprorary storage.
+                set +e
+                (
+                    set -xe
+                    eval "$roundup_test_name"
+                ) >$roundup_tmp/$roundup_test_name 2>&1
+
+                # We need capture the exit status before returning the set -e
+                # mode.  Returning with `set -e` before we capture the exit
+                # status will result in `$?` being set with `set`'s status
+                # instead.
                 roundup_result=$?
+
+                # It's safe to return to normal operation.
                 set -e
 
                 # If `after` wasn't defined, then this is `true`.
                 $roundup_after
-            fi
 
-            if [ "$roundup_result" -ne 0 ]
-            then
-                roundup_failed=$(($roundup_failed + 1))
-                roundup_fail
-                roundup_trace "$roundup_output"
-            else
-                roundup_passed=$(($roundup_passed + 1))
-                roundup_pass
+                if [ "$roundup_result" -ne 0 ]
+                then printf "f"
+                else printf "p"
+                fi
+
+                printf " "
+                printf "$roundup_test_name\n"
             fi
         done
     )
-done
-
-# Test Summary
-# ------------
-
-# Display the summary now that all tests are finished.
-printf "=======================================\n"
-printf "Tests:  %3d | " $roundup_ntests
-printf "Passed: %3d | " $roundup_passed
-printf "Failed: %3d"    $roundup_failed
-printf "\n"
+done | roundup_summarize
