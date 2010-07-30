@@ -90,12 +90,6 @@ roundup_trace() {
 
 # __Other helpers__
 
-# This is used below to test if `before`, `after`, and tests are really
-# functions.
-roundup_isfunc() {
-    [ "$(type -t "$1")" = function ] && true || false
-}
-
 # Track the test stats while outputting a real-time report.  This takes input on
 # **stdin**.  Each input line must come in the format of:
 #
@@ -216,47 +210,42 @@ do
 
         for roundup_test_name in $roundup_plan
         do
-            # Avoid executing a non-function by checking the name we have is, in
-            # fact, a function.
-            if roundup_isfunc $roundup_test_name
-            then
-                # If `before` wasn't redefined, then this is `:`.
-                before
+            # If `before` wasn't redefined, then this is `:`.
+            before
 
-                # Momentarily turn of auto-fail to give us access to the tests
-                # exit status in `$?` for capturing.
-                set +e
-                (
-                    # Set `-xe` before the test in the subshell.  We want the test
-                    # to fail fast to allow for more accurate output of where things
-                    # went wrong but not in _our_ process because a failed test
-                    # should not immediately fail roundup.  Each tests trace output
-                    # is saved in temporary storage.
-                    set -xe
-                    $roundup_test_name
-                ) >$roundup_tmp/$roundup_test_name 2>&1
+            # Momentarily turn of auto-fail to give us access to the tests
+            # exit status in `$?` for capturing.
+            set +e
+            (
+                # Set `-xe` before the test in the subshell.  We want the test
+                # to fail fast to allow for more accurate output of where things
+                # went wrong but not in _our_ process because a failed test
+                # should not immediately fail roundup.  Each tests trace output
+                # is saved in temporary storage.
+                set -xe
+                $roundup_test_name
+            ) >$roundup_tmp/$roundup_test_name 2>&1
 
-                # We need to capture the exit status before returning the
-                # `set -e` mode.  Returning with `set -e` before we capture the
-                # exit status will result in `$?` being set with `set`'s status
-                # instead.
-                roundup_result=$?
+            # We need to capture the exit status before returning the
+            # `set -e` mode.  Returning with `set -e` before we capture the
+            # exit status will result in `$?` being set with `set`'s status
+            # instead.
+            roundup_result=$?
 
-                # It's safe to return to normal operation.
-                set -e
+            # It's safe to return to normal operation.
+            set -e
 
-                # If `after` wasn't redefined, then this runs `:`.
-                after
+            # If `after` wasn't redefined, then this runs `:`.
+            after
 
-                # This is the final step of a test.  Print its pass/fail signal
-                # and name.
-                if [ "$roundup_result" -ne 0 ]
-                then printf "f"
-                else printf "p"
-                fi
-
-                printf " $roundup_test_name\n"
+            # This is the final step of a test.  Print its pass/fail signal
+            # and name.
+            if [ "$roundup_result" -ne 0 ]
+            then printf "f"
+            else printf "p"
             fi
+
+            printf " $roundup_test_name\n"
         done
     )
 done |
