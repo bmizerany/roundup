@@ -77,7 +77,7 @@ trap "rm -rf $roundup_tmp" EXIT
 roundup_trace() {
     # Delete the first two lines that represent roundups execution of the
     # test function.  They are useless to the user.
-    sed '1,2d'                                   |
+    sed '1d'                                   |
     # Trim the two left most `+` signs.  They represent the depth at which
     # roundup executed the function.  They also, are useless and confusing.
     sed 's/^++//'                                |
