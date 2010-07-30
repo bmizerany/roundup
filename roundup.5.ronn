@@ -10,7 +10,7 @@ roundup(5) -- test-plan file format for roundup(1)
 
 ## DESCRIPTION
 
-  A test-plan is a simple shell script that contains tests.  Tests are function whose
+  A test-plan is a simple shell script that contains tests.  Tests are functions whose
   names are prefixed with `it_`.
 
   Roundup will extract these function names and run them in a sandbox.  Each
