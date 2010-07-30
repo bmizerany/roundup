@@ -35,7 +35,7 @@ set -e
 
 # The current version is set during `make version`.  Do not modify this line in
 # anyway unless you know what you're doing.
-ROUNDUP_VERSION="0.1.0"
+ROUNDUP_VERSION="0.0.5"
 export ROUNDUP_VERSION
 
 # Usage is defined in a specific comment syntax. It is `grep`ed out of this file
