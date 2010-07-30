@@ -23,7 +23,7 @@ ROFFS = $(RONNS:.ronn=)
 SCRIPTS = roundup.sh $(wildcard *-test.sh)
 CODE_DOCS = $(SCRIPTS:=.html)
 MAN_DOCS = $(RONNS:.ronn=.html)
-DOCS = $(CODE_DOCS) $(MAN_DOCS)
+DOCS = index.html $(CODE_DOCS) $(MAN_DOCS)
 
 all:: sup build
 
@@ -95,7 +95,7 @@ read: sup doc
 	$(BROWSER) ./roundup.html
 
 clean:
-	$(RM) -rf $(PROGRAMS) $(DOCS) $(ROFFS) pages/
+	$(RM) -rf $(PROGRAMS) $(CODE_DOCS) $(MAN_DOCS) $(ROFFS) pages/
 
 distclean: clean
 	$(RM) -rf $(DISTFILES)
