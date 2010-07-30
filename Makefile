@@ -43,8 +43,9 @@ roundup: roundup.sh FORCE
 	chmod 0755 roundup
 
 test: roundup
-	./roundup roundup-5-test.sh
-	#./roundup roundup-1-test.sh
+	@echo This is expected to fail \`make\`.
+	@echo
+	./roundup
 
 doc: $(DOCS)
 
