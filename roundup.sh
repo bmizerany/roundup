@@ -80,10 +80,10 @@ roundup_trace() {
     sed '1d'                                   |
     # Trim the two left most `+` signs.  They represent the depth at which
     # roundup executed the function.  They also, are useless and confusing.
-    sed 's/^++//'                                |
+    sed 's/^++//'                              |
     # Indent the output by 4 spaces to align under the test name in the
     # summary.
-    sed 's/^\(.*\)$/    ! \1/'                   |
+    sed 's/^\(.*\)$/    \1/'                   |
     # Highlight the last line to bring notice to where the error occurred.
     sed "\$s/\(.*\)/$mag\1$clr/"
 }
@@ -119,6 +119,7 @@ roundup_summarize() {
         grn=$(printf "\033[32m")
         mag=$(printf "\033[35m")
         clr=$(printf "\033[m")
+        cols=$(tput cols)
     fi
 
     # Make these available to `roundup_trace`.
@@ -128,19 +129,21 @@ roundup_summarize() {
     passed=0
     failed=0
 
+    : ${cols:=10}
+
     while read status name
     do
         case $status in
         p)
             ntests=$(expr $ntests + 1)
             passed=$(expr $passed + 1)
-            printf "  %s: " "$name"
+            printf "  %-48s " "$name:"
             printf "$grn[PASS]$clr\n"
             ;;
         f)
             ntests=$(expr $ntests + 1)
             failed=$(expr $failed + 1)
-            printf "  %s: " "$name"
+            printf "  %-48s " "$name:"
             printf "$red[FAIL]$clr\n"
             roundup_trace < $roundup_tmp/$name
             ;;
