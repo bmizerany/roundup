@@ -106,6 +106,10 @@ roundup_summarize() {
 
     # If we are writing to a tty device or we've been asked to always show colors,
     # we use colors.
+    red=
+    grn=
+    mag=
+    clr=
     if test -t 1
     then
         red=$(printf "\033[31m")
