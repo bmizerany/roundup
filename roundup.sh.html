@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-eqiv='content-type' content='text/html;charset=utf-8'>
+    <title>roundup.sh</title>
+    <link rel=stylesheet href="http://jashkenas.github.com/docco/resources/docco.css">
+</head>
+<body>
+<div id=container>
+    <div id=background></div>
+    <table cellspacing=0 cellpadding=0>
+    <thead>
+      <tr>
+        <th class=docs><h1>roundup.sh</h1></th>
+        <th class=code></th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr><td class='docs'><p><em>(c) 2010 Blake Mizerany - MIT License</em></p>
+
+<p>Spray <strong>roundup</strong> on your shells to eliminate weeds and bugs.  If your shells
+survive <strong>roundup</strong>'s deathly toxic properties, they are considered
+roundup-ready.</p>
+
+<p><strong>roundup</strong> reads shell scripts to form test plans.  Each
+test plan is sourced into a sandbox where each test is executed.</p>
+
+<p>See <a href="roundup-1-test.sh.html">roundup-1-test.sh.html</a> or <a href="roundup-5-test.sh.html">roundup-5-test.sh.html</a> for example
+test plans.</p>
+
+<p><strong>Install</strong></p>
+
+<pre><code>git clone http://github.com/bmizerany/roundup.git
+cd roundup
+make
+sudo make install
+# Alternatively, copy `roundup` wherever you like.
+</code></pre>
+
+<p><strong>NOTE</strong>:  Because test plans are sourced into roundup, roundup prefixes its
+variable and function names with <code>roundup_</code> to avoid name collisions.  See
+"Sandbox Test Runs" below for more insight.</p>
+
+</td><td class=code><div class=highlight><pre>
+<span class="c">#!/bin/sh</span>
+
+</pre></div></td></tr><tr><td class=docs>
+
+<h2>Usage and Prerequisites</h2>
+
+</td><td class=code><div class=highlight><pre>
+
+</pre></div></td></tr><tr><td class=docs>
+
+<p>Exit if any following command exits with a non-zero status.</p>
+
+</td><td class=code><div class=highlight><pre>
+<span class="nb">set</span> -e
+
+</pre></div></td></tr><tr><td class=docs>
+
+<p>The current version is set during <code>make version</code>.  Do not modify this line in
+anyway unless you know what you're doing.</p>
+
+</td><td class=code><div class=highlight><pre>
+<span class="nv">ROUNDUP_VERSION</span><span class="o">=</span><span class="s2">&quot;0.0.5&quot;</span>
+<span class="nb">export </span>ROUNDUP_VERSION
+
+</pre></div></td></tr><tr><td class=docs>
+
+<p>Usage is defined in a specific comment syntax. It is <code>grep</code>ed out of this file
+when needed (i.e. The Tomayko Method).  See
+<a href="http://rtomayko.heroku.com/shocco">shocco</a> for more detail.</p>
+
+</td><td class=code><div class=highlight><pre>
+<span class="c">#/ usage: roundup [--help] [--version] [plan ...]</span>
+
+roundup_usage<span class="o">()</span> <span class="o">{</span>
+    grep <span class="s1">&#39;^#/&#39;</span> &lt;<span class="s2">&quot;$0&quot;</span> | cut -c4-
+<span class="o">}</span>
+
+expr -- <span class="s2">&quot;$*&quot;</span> : <span class="s2">&quot;.*--help&quot;</span> &gt;/dev/null <span class="o">&amp;&amp;</span> <span class="o">{</span>
+    roundup_usage
+    <span class="nb">exit </span>0
+<span class="o">}</span>
+
+expr -- <span class="s2">&quot;$*&quot;</span> : <span class="s2">&quot;.*--version&quot;</span> &gt;/dev/null <span class="o">&amp;&amp;</span> <span class="o">{</span>
+    <span class="nb">echo</span> <span class="s2">&quot;roundup version $ROUNDUP_VERSION&quot;</span>
+    <span class="nb">exit </span>0
+<span class="o">}</span>
+
+</pre></div></td></tr><tr><td class=docs>
+
+<p>Consider all scripts with names matching <code>*-test.sh</code> the plans to run unless
+otherwise specified as arguments.</p>
+
+</td><td class=code><div class=highlight><pre>
+<span class="k">if</span> <span class="o">[</span> <span class="s2">&quot;$#&quot;</span> -gt <span class="s2">&quot;0&quot;</span> <span class="o">]</span>
+<span class="k">then</span>
+<span class="k">    </span><span class="nv">roundup_plans</span><span class="o">=</span><span class="s2">&quot;$@&quot;</span>
+<span class="k">else</span>
+<span class="k">    </span><span class="nv">roundup_plans</span><span class="o">=</span><span class="s2">&quot;$(ls *-test.sh)&quot;</span>
+<span class="k">fi</span>
+
+</pre></div></td></tr><tr><td class=docs>
+
+<p>Create a temporary storage place for test output to be retrieved for display
+after failing tests.</p>
+
+</td><td class=code><div class=highlight><pre>
+<span class="nv">roundup_tmp</span><span class="o">=</span>.roundup.<span class="nv">$$</span>
+mkdir -p <span class="nv">$roundup_tmp</span>
+
+<span class="nb">trap</span> <span class="s2">&quot;rm -rf $roundup_tmp&quot;</span> EXIT
+
+</pre></div></td></tr><tr><td class=docs>
+
+<p><strong>Tracing failures</strong></p>
+
+</td><td class=code><div class=highlight><pre>
+roundup_trace<span class="o">()</span> <span class="o">{</span>
+</pre></div></td></tr><tr><td class=docs>
+
+<p>Delete the first two lines that represent roundups execution of the
+test function.  They are useless to the user.</p>
+
+</td><td class=code><div class=highlight><pre>
+    sed <span class="s1">&#39;1d&#39;</span>                                   |
+</pre></div></td></tr><tr><td class=docs>
+
+<p>Trim the two left most <code>+</code> signs.  They represent the depth at which
+roundup executed the function.  They also, are useless and confusing.</p>
+
+</td><td class=code><div class=highlight><pre>
+    sed <span class="s1">&#39;s/^++//&#39;</span>                              |
+</pre></div></td></tr><tr><td class=docs>
+
+<p>Indent the output by 4 spaces to align under the test name in the
+summary.</p>
+
+</td><td class=code><div class=highlight><pre>
+    sed <span class="s1">&#39;s/^\(.*\)$/    \1/&#39;</span>                   |
+</pre></div></td></tr><tr><td class=docs>
+
+<p>Highlight the last line to bring notice to where the error occurred.</p>
+
+</td><td class=code><div class=highlight><pre>
+    sed <span class="s2">&quot;\$s/\(.*\)/$mag\1$clr/&quot;</span>
+<span class="o">}</span>
+
+</pre></div></td></tr><tr><td class=docs>
+
+<p><strong>Other helpers</strong></p>
+
+</td><td class=code><div class=highlight><pre>
+
+</pre></div></td></tr><tr><td class=docs>
+
+<p>Track the test stats while outputting a real-time report.  This takes input on
+<strong>stdin</strong>.  Each input line must come in the format of:</p>
+
+<pre><code># The plan description to be displayed
+d &lt;plan description&gt;
+
+# A passing test
+p &lt;test name&gt;
+
+# A failed test
+f &lt;test name&gt;
+</code></pre>
+
+</td><td class=code><div class=highlight><pre>
+roundup_summarize<span class="o">()</span> <span class="o">{</span>
+    <span class="nb">set</span> -e
+
+</pre></div></td></tr><tr><td class=docs>
+
+<p><strong>Colors for output</strong></p>
+
+</td><td class=code><div class=highlight><pre>
+
+</pre></div></td></tr><tr><td class=docs>
+
+<p>Use colors if we are writing to a tty device.</p>
+
+</td><td class=code><div class=highlight><pre>
+    <span class="k">if </span><span class="nb">test</span> -t 1
+    <span class="k">then</span>
+<span class="k">        </span><span class="nv">red</span><span class="o">=</span><span class="k">$(</span><span class="nb">printf</span> <span class="s2">&quot;\033[31m&quot;</span><span class="k">)</span>
+        <span class="nv">grn</span><span class="o">=</span><span class="k">$(</span><span class="nb">printf</span> <span class="s2">&quot;\033[32m&quot;</span><span class="k">)</span>
+        <span class="nv">mag</span><span class="o">=</span><span class="k">$(</span><span class="nb">printf</span> <span class="s2">&quot;\033[35m&quot;</span><span class="k">)</span>
+        <span class="nv">clr</span><span class="o">=</span><span class="k">$(</span><span class="nb">printf</span> <span class="s2">&quot;\033[m&quot;</span><span class="k">)</span>
+        <span class="nv">cols</span><span class="o">=</span><span class="k">$(</span>tput cols<span class="k">)</span>
+    <span class="k">fi</span>
+
+</pre></div></td></tr><tr><td class=docs>
+
+<p>Make these available to <code>roundup_trace</code>.</p>
+
+</td><td class=code><div class=highlight><pre>
+    <span class="nb">export </span>red grn mag clr
+
+    <span class="nv">ntests</span><span class="o">=</span>0
+    <span class="nv">passed</span><span class="o">=</span>0
+    <span class="nv">failed</span><span class="o">=</span>0
+
+    : <span class="k">${</span><span class="nv">cols</span><span class="p">:=10</span><span class="k">}</span>
+
+    <span class="k">while </span><span class="nb">read </span>status name
+    <span class="k">do</span>
+<span class="k">        case</span> <span class="nv">$status</span> in
+        p<span class="o">)</span>
+            <span class="nv">ntests</span><span class="o">=</span><span class="k">$(</span>expr <span class="nv">$ntests</span> + 1<span class="k">)</span>
+            <span class="nv">passed</span><span class="o">=</span><span class="k">$(</span>expr <span class="nv">$passed</span> + 1<span class="k">)</span>
+            <span class="nb">printf</span> <span class="s2">&quot;  %-48s &quot;</span> <span class="s2">&quot;$name:&quot;</span>
+            <span class="nb">printf</span> <span class="s2">&quot;$grn[PASS]$clr\n&quot;</span>
+            ;;
+        f<span class="o">)</span>
+            <span class="nv">ntests</span><span class="o">=</span><span class="k">$(</span>expr <span class="nv">$ntests</span> + 1<span class="k">)</span>
+            <span class="nv">failed</span><span class="o">=</span><span class="k">$(</span>expr <span class="nv">$failed</span> + 1<span class="k">)</span>
+            <span class="nb">printf</span> <span class="s2">&quot;  %-48s &quot;</span> <span class="s2">&quot;$name:&quot;</span>
+            <span class="nb">printf</span> <span class="s2">&quot;$red[FAIL]$clr\n&quot;</span>
+            roundup_trace &lt; <span class="nv">$roundup_tmp</span>/<span class="nv">$name</span>
+            ;;
+        d<span class="o">)</span>
+            <span class="nb">printf</span> <span class="s2">&quot;%s\n&quot;</span> <span class="s2">&quot;$name&quot;</span>
+            ;;
+        <span class="k">esac</span>
+<span class="k">    done</span>
+</pre></div></td></tr><tr><td class=docs>
+
+<p><strong>Test Summary</strong></p>
+
+<p>Display the summary now that all tests are finished.</p>
+
+</td><td class=code><div class=highlight><pre>
+    <span class="nv">yes</span> <span class="o">=</span> | head -n 57 | tr -d <span class="s1">&#39;\n&#39;</span>
+    <span class="nb">printf</span> <span class="s2">&quot;\n&quot;</span>
+    <span class="nb">printf</span> <span class="s2">&quot;Tests:  %3d | &quot;</span> <span class="nv">$ntests</span>
+    <span class="nb">printf</span> <span class="s2">&quot;Passed: %3d | &quot;</span> <span class="nv">$passed</span>
+    <span class="nb">printf</span> <span class="s2">&quot;Failed: %3d&quot;</span>    <span class="nv">$failed</span>
+    <span class="nb">printf</span> <span class="s2">&quot;\n&quot;</span>
+
+</pre></div></td></tr><tr><td class=docs>
+
+<p>Exit with an error if any tests failed</p>
+
+</td><td class=code><div class=highlight><pre>
+    <span class="nb">test</span> <span class="nv">$failed</span> -eq 0 <span class="o">||</span> <span class="nb">exit </span>2
+<span class="o">}</span>
+
+</pre></div></td></tr><tr><td class=docs>
+
+<h2>Sandbox Test Runs</h2>
+
+</td><td class=code><div class=highlight><pre>
+
+</pre></div></td></tr><tr><td class=docs>
+
+<p>The above checks guarantee we have at least one test.  We can now move through
+each specified test plan, determine its test plan, and administer each test
+listed in a isolated sandbox.</p>
+
+</td><td class=code><div class=highlight><pre>
+<span class="k">for </span>roundup_p in <span class="nv">$roundup_plans</span>
+<span class="k">do</span>
+</pre></div></td></tr><tr><td class=docs>
+
+<p>Create a sandbox, source the test plan, run the tests, then leave
+without a trace.</p>
+
+</td><td class=code><div class=highlight><pre>
+    <span class="o">(</span>
+</pre></div></td></tr><tr><td class=docs>
+
+<p>Consider the description to be the <code>basename</code> of <plan> minus the
+tailing -test.sh.</p>
+
+</td><td class=code><div class=highlight><pre>
+        <span class="nv">roundup_desc</span><span class="o">=</span><span class="k">$(</span>basename <span class="s2">&quot;$roundup_p&quot;</span> -test.sh<span class="k">)</span>
+
+</pre></div></td></tr><tr><td class=docs>
+
+<p>Define functions for
+<a href="roundup.5.html">roundup(5)</a></p>
+
+</td><td class=code><div class=highlight><pre>
+
+</pre></div></td></tr><tr><td class=docs>
+
+<p>A custom description is recommended, but optional.  Use <code>describe</code> to
+set the description to something more meaningful.
+TODO: reimplement this.</p>
+
+</td><td class=code><div class=highlight><pre>
+        describe<span class="o">()</span> <span class="o">{</span>
+            <span class="nv">roundup_desc</span><span class="o">=</span><span class="s2">&quot;$*&quot;</span>
+        <span class="o">}</span>
+
+</pre></div></td></tr><tr><td class=docs>
+
+<p>Provide default <code>before</code> and <code>after</code> functions that run only <code>:</code>, a
+no-op. They may or may not be redefined by the test plan.</p>
+
+</td><td class=code><div class=highlight><pre>
+        before<span class="o">()</span> <span class="o">{</span> :; <span class="o">}</span>
+        after<span class="o">()</span> <span class="o">{</span> :; <span class="o">}</span>
+
+</pre></div></td></tr><tr><td class=docs>
+
+<p>Seek test methods and aggregate their names, forming a test plan.
+This is done before populating the sandbox with tests to avoid odd
+conflicts.</p>
+
+</td><td class=code><div class=highlight><pre>
+
+</pre></div></td></tr><tr><td class=docs>
+
+<p>TODO:  I want to do this with sed only.  Please send a patch if you
+know a cleaner way.</p>
+
+</td><td class=code><div class=highlight><pre>
+        <span class="nv">roundup_plan</span><span class="o">=</span><span class="k">$(</span>
+            grep <span class="s2">&quot;^it_.*()&quot;</span> <span class="nv">$roundup_p</span>           |
+            sed <span class="s2">&quot;s/\(it_[a-zA-Z0-9_]*\).*$/\1/g&quot;</span>
+        <span class="k">)</span>
+
+</pre></div></td></tr><tr><td class=docs>
+
+<p>We have the test plan and are in our sandbox with <a href="roundup.5.html">roundup(5)</a>
+defined.  Now we source the plan to bring its tests into scope.</p>
+
+</td><td class=code><div class=highlight><pre>
+        . ./<span class="nv">$roundup_p</span>
+
+</pre></div></td></tr><tr><td class=docs>
+
+<p>Output the description signal</p>
+
+</td><td class=code><div class=highlight><pre>
+        <span class="nb">printf</span> <span class="s2">&quot;d %s&quot;</span> <span class="s2">&quot;$roundup_desc&quot;</span> | tr <span class="s2">&quot;\n&quot;</span> <span class="s2">&quot; &quot;</span>
+        <span class="nb">printf</span> <span class="s2">&quot;\n&quot;</span>
+
+        <span class="k">for </span>roundup_test_name in <span class="nv">$roundup_plan</span>
+        <span class="k">do</span>
+</pre></div></td></tr><tr><td class=docs>
+
+<p>If <code>before</code> wasn't redefined, then this is <code>:</code>.</p>
+
+</td><td class=code><div class=highlight><pre>
+            before
+
+</pre></div></td></tr><tr><td class=docs>
+
+<p>Momentarily turn of auto-fail to give us access to the tests
+exit status in <code>$?</code> for capturing.</p>
+
+</td><td class=code><div class=highlight><pre>
+            <span class="nb">set</span> +e
+            <span class="o">(</span>
+</pre></div></td></tr><tr><td class=docs>
+
+<p>Set <code>-xe</code> before the test in the subshell.  We want the test
+to fail fast to allow for more accurate output of where things
+went wrong but not in <em>our</em> process because a failed test
+should not immediately fail roundup.  Each tests trace output
+is saved in temporary storage.</p>
+
+</td><td class=code><div class=highlight><pre>
+                <span class="nb">set</span> -xe
+                <span class="nv">$roundup_test_name</span>
+            <span class="o">)</span> &gt;<span class="nv">$roundup_tmp</span>/<span class="nv">$roundup_test_name</span> 2&gt;&amp;1
+
+</pre></div></td></tr><tr><td class=docs>
+
+<p>We need to capture the exit status before returning the
+<code>set -e</code> mode.  Returning with <code>set -e</code> before we capture the
+exit status will result in <code>$?</code> being set with <code>set</code>'s status
+instead.</p>
+
+</td><td class=code><div class=highlight><pre>
+            <span class="nv">roundup_result</span><span class="o">=</span><span class="nv">$?</span>
+
+</pre></div></td></tr><tr><td class=docs>
+
+<p>It's safe to return to normal operation.</p>
+
+</td><td class=code><div class=highlight><pre>
+            <span class="nb">set</span> -e
+
+</pre></div></td></tr><tr><td class=docs>
+
+<p>If <code>after</code> wasn't redefined, then this runs <code>:</code>.</p>
+
+</td><td class=code><div class=highlight><pre>
+            after
+
+</pre></div></td></tr><tr><td class=docs>
+
+<p>This is the final step of a test.  Print its pass/fail signal
+and name.</p>
+
+</td><td class=code><div class=highlight><pre>
+            <span class="k">if</span> <span class="o">[</span> <span class="s2">&quot;$roundup_result&quot;</span> -ne 0 <span class="o">]</span>
+            <span class="k">then </span><span class="nb">printf</span> <span class="s2">&quot;f&quot;</span>
+            <span class="k">else </span><span class="nb">printf</span> <span class="s2">&quot;p&quot;</span>
+            <span class="k">fi</span>
+
+<span class="k">            </span><span class="nb">printf</span> <span class="s2">&quot; $roundup_test_name\n&quot;</span>
+        <span class="k">done</span>
+    <span class="o">)</span>
+<span class="k">done</span> |
+
+</pre></div></td></tr><tr><td class=docs>
+
+<p>All signals are piped to this for summary.</p>
+
+</td><td class=code><div class=highlight><pre>
+roundup_summarize
+
+
+</td><td class=code><div class=highlight><pre>
+</pre></div></td></tr><tr><td class=docs>
+
+</pre></div></td></tr><tr><td class=docs>
+</td><td class=code><div class=highlight><pre>
+
+</pre></div></td></tr><tr><td class=docs></td><td class='code'></td></tr>
+    </tbody>
+    </table>
+</div>
+</body>
+</html>

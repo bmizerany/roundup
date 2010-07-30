@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-eqiv='content-type' content='text/html;charset=utf-8'>
+    <title>roundup-5-test.sh</title>
+    <link rel=stylesheet href="http://jashkenas.github.com/docco/resources/docco.css">
+</head>
+<body>
+<div id=container>
+    <div id=background></div>
+    <table cellspacing=0 cellpadding=0>
+    <thead>
+      <tr>
+        <th class=docs><h1>roundup-5-test.sh</h1></th>
+        <th class=code></th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr><td class='docs'><h2>This Will Fail</h2>
+
+<p>That is the point. This is testing <a href="roundup.5.html">roundup(5)</a>. A few tests fail on
+purpose, because each is testing a specific success or failure condition.
+<a href="#">roundup(1)</a> will flunk a plan executed with one or more failing tests.
+Therefore, this will fail.</p>
+
+</td><td class=code><div class=highlight><pre>
+<span class="c">#!/usr/bin/env roundup</span>
+
+</pre></div></td></tr><tr><td class=docs>
+
+<h2>A quick note</h2>
+
+<p>For more information on how roundup views a test-plan, see <a href="roundup.5.html">roundup(5)</a>.</p>
+
+</td><td class=code><div class=highlight><pre>
+
+</pre></div></td></tr><tr><td class=docs>
+
+<h2>Let's get started</h2>
+
+</td><td class=code><div class=highlight><pre>
+
+</pre></div></td></tr><tr><td class=docs>
+
+<p><code>describe</code> the plan meaningfully.</p>
+
+</td><td class=code><div class=highlight><pre>
+describe <span class="s2">&quot;roundup(5)&quot;</span>
+
+</pre></div></td></tr><tr><td class=docs>
+
+<p><code>before</code> each test, set an arbitrary variable to an arbitrary value.  A later
+test checks the variable to know if <code>before</code> was run.</p>
+
+</td><td class=code><div class=highlight><pre>
+before<span class="o">()</span> <span class="o">{</span>
+    <span class="nv">foo</span><span class="o">=</span><span class="s2">&quot;bar&quot;</span>
+<span class="o">}</span>
+
+</pre></div></td></tr><tr><td class=docs>
+
+<p><code>after</code> each test, delete <code>foo.txt</code> if it exists.  A later test will touch
+said file.  It's sister test will later run to check it no longer exists to
+ensure this ran.</p>
+
+</td><td class=code><div class=highlight><pre>
+after<span class="o">()</span> <span class="o">{</span>
+    rm -f foo.txt
+<span class="o">}</span>
+
+</pre></div></td></tr><tr><td class=docs>
+
+<p>Test basic success and failure conditions.  These are intentionally <em>silly</em>
+tests to keep their results deterministic.  <code>it_fails</code> <strong>will</strong> fail, causing the
+whole plan to fail.</p>
+
+<p><strong>NOTE</strong>:  the results of these, and all of the following tests are checked in
+<a href="roundup-1-test.html">roundup-1-test.sh</a></p>
+
+</td><td class=code><div class=highlight><pre>
+it_passes<span class="o">()</span> <span class="o">{</span>
+    <span class="nb">true</span>
+<span class="o">}</span>
+
+it_fails<span class="o">()</span> <span class="o">{</span>
+    <span class="nb">false</span>
+<span class="o">}</span>
+
+</pre></div></td></tr><tr><td class=docs>
+
+<p>Check <code>$foo</code> to ensure <code>before</code> ran.</p>
+
+</td><td class=code><div class=highlight><pre>
+it_runs_before<span class="o">()</span> <span class="o">{</span>
+    <span class="nb">test</span> <span class="s2">&quot;$foo&quot;</span> <span class="s2">&quot;=&quot;</span> <span class="s2">&quot;bar&quot;</span>
+<span class="o">}</span>
+
+</pre></div></td></tr><tr><td class=docs>
+
+<p>Start the <code>after</code> test.  Drop a file and check it really exists.  The sister
+test checks if <code>after</code> cleans it up.</p>
+
+</td><td class=code><div class=highlight><pre>
+it_runs_after_a_test_passes_part_1<span class="o">()</span> <span class="o">{</span>
+    touch foo.txt
+    <span class="nb">test</span> -f foo.txt
+<span class="o">}</span>
+
+</pre></div></td></tr><tr><td class=docs>
+
+<p>Test the file dropped above is no longer on disk.  If it doesn't exist, we
+know <code>after</code> ran.</p>
+
+</td><td class=code><div class=highlight><pre>
+it_runs_after_a_test_passes_part_2<span class="o">()</span> <span class="o">{</span>
+    <span class="nb">test</span> <span class="s2">&quot;!&quot;</span> -f foo.txt
+<span class="o">}</span>
+
+</pre></div></td></tr><tr><td class=docs>
+
+<p>We want <code>after</code> to run if a test passes or fails.  Leaving behind debris isn't
+good practice.  This test will drop a file to disk then intentionally fail.
+It's sister test makes sure the file no longer exists, proving <code>after</code> ran.</p>
+
+</td><td class=code><div class=highlight><pre>
+it_runs_after_if_a_test_fails_part_1<span class="o">()</span> <span class="o">{</span>
+    touch foo.txt
+    <span class="nb">test</span> -f foo.txt
+    <span class="nb">false</span>
+<span class="o">}</span>
+
+</pre></div></td></tr><tr><td class=docs>
+
+<p>Start the <code>after</code> test.  Drop a file and check it really exists.  The sister
+test checks if <code>after</code> cleans it up.</p>
+
+</td><td class=code><div class=highlight><pre>
+it_runs_after_if_a_test_fails_part_2<span class="o">()</span> <span class="o">{</span>
+    <span class="nb">test</span> <span class="s2">&quot;!&quot;</span> -f foo.txt
+<span class="o">}</span>
+
+</pre></div></td></tr><tr><td class=docs>
+
+<p>Roundup will ignore tests starting with <code>x</code>.  Ignored tests are still
+enumerated in the plans output marked with <code>[I]</code>.  If roundup does not ignore
+this, result in failure.</p>
+
+</td><td class=code><div class=highlight><pre>
+xit_ignores_this<span class="o">()</span> <span class="o">{</span>
+    <span class="nb">false</span>
+<span class="o">}</span>
+
+
+</td><td class=code><div class=highlight><pre>
+</pre></div></td></tr><tr><td class=docs>
+
+</pre></div></td></tr><tr><td class=docs>
+</td><td class=code><div class=highlight><pre>
+
+</pre></div></td></tr><tr><td class=docs></td><td class='code'></td></tr>
+    </tbody>
+    </table>
+</div>
+</body>
+</html>

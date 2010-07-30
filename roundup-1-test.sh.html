@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-eqiv='content-type' content='text/html;charset=utf-8'>
+    <title>roundup-1-test.sh</title>
+    <link rel=stylesheet href="http://jashkenas.github.com/docco/resources/docco.css">
+</head>
+<body>
+<div id=container>
+    <div id=background></div>
+    <table cellspacing=0 cellpadding=0>
+    <thead>
+      <tr>
+        <th class=docs><h1>roundup-1-test.sh</h1></th>
+        <th class=code></th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr><td class='docs'><h2>This Will Pass</h2>
+
+<p>This test checks <strong>roundup</strong> runs <a href="roundup-5-test.html">roundup-5-test.sh</a> and fails with the
+expected output.</p>
+
+</td><td class=code><div class=highlight><pre>
+<span class="c">#!/usr/bin/env roundup</span>
+
+</pre></div></td></tr><tr><td class=docs>
+
+<h2>A quick note</h2>
+
+<p>For more information on how roundup views a test-plan, see <a href="roundup.5.html">roundup(5)</a> or
+the <a href="roundup-5-test.html">roundup(5) test</a>.</p>
+
+</td><td class=code><div class=highlight><pre>
+
+</pre></div></td></tr><tr><td class=docs>
+
+<h2>Let's get started</h2>
+
+</td><td class=code><div class=highlight><pre>
+
+</pre></div></td></tr><tr><td class=docs>
+
+<h2>Prerequisits</h2>
+
+</td><td class=code><div class=highlight><pre>
+
+</pre></div></td></tr><tr><td class=docs>
+
+<p>Before anything, we need to know if what we're testing exists.</p>
+
+</td><td class=code><div class=highlight><pre>
+<span class="nv">r5tf</span><span class="o">=</span>roundup-5-test.sh
+<span class="nb">test</span> -f <span class="nv">$r5tf</span> <span class="o">||</span> <span class="o">{</span>
+    <span class="nb">echo </span>1&gt;&amp;2 <span class="s1">&#39;! fatal:&#39;</span> <span class="s2">&quot;$r5tf does not exist in $PWD; exiting.&quot;</span>
+    <span class="nb">exit </span>1
+<span class="o">}</span>
+
+r5t<span class="o">()</span> <span class="o">{</span>
+    /bin/sh <span class="nv">$0</span> <span class="nv">$r5tf</span>
+<span class="o">}</span>
+
+</pre></div></td></tr><tr><td class=docs>
+
+<h2>The Plan</h2>
+
+</td><td class=code><div class=highlight><pre>
+
+</pre></div></td></tr><tr><td class=docs>
+
+<p><code>describe</code> the plan meaningfully.</p>
+
+</td><td class=code><div class=highlight><pre>
+describe <span class="s2">&quot;roundup(1) testing roundup(5)&quot;</span>
+
+it_displays_the_title<span class="o">()</span> <span class="o">{</span>
+    <span class="nv">first_line</span><span class="o">=</span><span class="k">$(</span>r5t | head -n 1<span class="k">)</span>
+    <span class="nb">test</span> <span class="s2">&quot;$first_line&quot;</span> <span class="s2">&quot;=&quot;</span> <span class="s2">&quot;roundup(5)&quot;</span>
+<span class="o">}</span>
+
+it_exists_non_zero<span class="o">()</span> <span class="o">{</span>
+    <span class="nv">status</span><span class="o">=</span><span class="k">$(</span><span class="nb">set</span> +e ; r5t &gt;/dev/null ; <span class="nb">echo</span> <span class="nv">$?</span><span class="k">)</span>
+    <span class="nb">test </span>2 -eq <span class="nv">$status</span>
+<span class="o">}</span>
+
+
+</td><td class=code><div class=highlight><pre>
+</pre></div></td></tr><tr><td class=docs>
+
+</pre></div></td></tr><tr><td class=docs>
+</td><td class=code><div class=highlight><pre>
+
+</pre></div></td></tr><tr><td class=docs></td><td class='code'></td></tr>
+    </tbody>
+    </table>
+</div>
+</body>
+</html>
