@@ -69,8 +69,9 @@ fi
 # Create a temporary storage place for test output to be retrieved for display
 # after failing tests.
 roundup_tmp="$PWD/.roundup.$$"
-rm -rf $roundup_tmp
-mkdir $roundup_tmp
+mkdir -p $roundup_tmp
+
+trap "rm -rf $roundup_tmp" EXIT
 
 # __Tracing failures__
 roundup_trace() {
