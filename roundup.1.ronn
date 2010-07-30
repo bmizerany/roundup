@@ -3,12 +3,12 @@ roundup(1) -- eliminates bugs and weeds from shell scripts
 
 ## SYNOPSIS
 
-  `roundup` [file ...]
+  `roundup` [plan ...]
 
 ## DESCRIPTION
 
-`roundup` will enumerate, isolate, and execute tests in <file>, as defined by
-roundup(5).  Test files are shell scripts.  If all tests pass, the shell is
+`roundup` will enumerate, isolate, and execute tests in <plan>, as defined by
+roundup(5).  Test plans are shell scripts.  If all tests pass, the shell is
 roundup-ready.
 
 ## OPTIONS
@@ -21,7 +21,7 @@ roundup-ready.
 
 ## BEHAVIOUR
 
-`roundup` run with no <file>(s) specified will attempt to run all files matching
+`roundup` run with no <plan>(s) specified will attempt to run all files matching
 $PWD/t/*-test.sh
 
 ## EXIT STATUS
