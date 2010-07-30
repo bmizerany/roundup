@@ -45,11 +45,11 @@ after() {
 # __NOTE__:  the results of these, and all of the following tests are checked in
 # [roundup-1-test.sh][r1t]
 it_passes() {
-    test 1 -eq 1
+    true
 }
 
 it_fails() {
-    test 1 -eq 0
+    false
 }
 
 # Check `$foo` to ensure `before` ran.
@@ -76,7 +76,7 @@ it_runs_after_a_test_passes_part_2() {
 it_runs_after_if_a_test_fails_part_1() {
     touch foo.txt
     test -f foo.txt
-    test 1 -eq 2
+    false
 }
 
 # Start the `after` test.  Drop a file and check it really exists.  The sister
@@ -89,5 +89,5 @@ it_runs_after_if_a_test_fails_part_2() {
 # enumerated in the plans output marked with `[I]`.  If roundup does not ignore
 # this, result in failure.
 xit_ignores_this() {
-    it_fails
+    false
 }
