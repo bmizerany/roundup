@@ -188,6 +188,7 @@ do
             then
                 printf "  $roundup_t: "
 
+                # If before wasn't defined, then this is `true`.
                 $roundup_before
                 set +e
                 # Set `-xe` before the `eval` in the subshell.  We want the test
@@ -197,6 +198,8 @@ do
                 roundup_output=$( set -xe; (eval "$roundup_t") 2>&1 )
                 roundup_result=$?
                 set -e
+
+                # If `after` wasn't defined, then this is `true`.
                 $roundup_after
             fi
 
