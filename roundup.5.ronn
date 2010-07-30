@@ -1,8 +1,8 @@
 roundup(5) -- test-plan file format for roundup(1)
 ==========================================================
 
-[r1t]: http://github.com/bmizerany/tree/v0.5.0/roundup-1-test.sh.html
-[r5t]: http://github.com/bmizerany/tree/v0.5.0/roundup-5-test.sh.html
+[r1t]: http://bmizerany.github.com/roundup/roundup-1-test.sh.html
+[r5t]: http://bmizerany.github.com/roundup/roundup-5-test.sh.html
 
 ## SYNOPSIS
 

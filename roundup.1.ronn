@@ -8,8 +8,7 @@ roundup(1) -- eliminate bugs and weeds from shell scripts
 ## DESCRIPTION
 
 `roundup` will enumerate, isolate, and execute tests in <plan>, as defined by
-roundup(5).  Test plans are shell scripts.  If all tests pass, the shell is
-roundup-ready.
+roundup(5).  If all tests pass, the shell is roundup-ready.
 
 ## OPTIONS
 
@@ -50,5 +49,7 @@ roundup(1), test(1)
 ## NOTES
 
 Contest - http://blog.citrusbyte.com/2009/05/19/introducing-contest
+
 Unit Testing - http://en.wikipedia.org/wiki/Unit_testing
+
 Behaviour Driven Development - http://behaviour-driven.org/Introduction
