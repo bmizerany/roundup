@@ -7,8 +7,9 @@ roundup(1) -- eliminates bugs and weeds from shell scripts
 
 ## DESCRIPTION
 
-`roundup` will enumerate, isolate, and execute tests in shell <file>, as defined by
-roundup(5).  If all tests pass, the shell is roundup-ready.
+`roundup` will enumerate, isolate, and execute tests in <file>, as defined by
+roundup(5).  Test files are shell scripts.  If all tests pass, the shell is
+roundup-ready.
 
 ## OPTIONS
 
@@ -25,12 +26,7 @@ $PWD/t/*-test.sh
 
 ## EXIT STATUS
 
-* 1:
-  Argument or invocation error.
-* 2:
-  Failed test.
-* 127-255:
-  Abnormal error or test file error.
+**roundup** exists with 0 on success, > 0 otherwise.
 
 ## BUGS
 
