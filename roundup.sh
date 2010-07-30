@@ -35,7 +35,8 @@ set -e
 
 # The current version is set during `make version`.  Do not modify this line in
 # anyway unless you know what you're doing.
-VERSION="0.1.0"
+ROUNDUP_VERSION="0.1.0"
+export ROUNDUP_VERSION
 
 # Usage is defined in a specific comment syntax. It is `grep`ed out of this file
 # when needed (i.e. The Tomayko Method).  See
