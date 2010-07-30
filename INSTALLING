@@ -1,0 +1,16 @@
+Tarballs available at: <http://github.com/bmizerany/roundup/downloads>
+
+    $ curl -L http://github.com/bmizerany/roundup/downloads/0.0.5 | tar xvzf -
+    $ cd bmizerany-roundup
+    $ ./configure # see --help for options
+    $ make
+    $ make install # you may need sudo
+
+Hacking? Clone the git repository and put roundup on your PATH:
+
+    $ git clone git://github.com/bmizerany/roundup.git
+    $ cd roundup
+    $ ./configure # see --help for options
+    $ make
+    $ PATH=$(pwd):$PATH
+    $ roundup --help

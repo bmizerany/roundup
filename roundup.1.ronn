@@ -1,4 +1,4 @@
-roundup(1) -- eliminates bugs and weeds from shell scripts
+roundup(1) -- eliminate bugs and weeds from shell scripts
 ==========================================================
 
 ## SYNOPSIS
@@ -49,8 +49,8 @@ roundup(5), test(1)
 
 ## NOTES
 
-Unit Testing:
+* Unit Testing:
   http://en.wikipedia.org/wiki/Unit_testing
 
-Behaviour Driven Development:
+* Behaviour Driven Development:
   http://behaviour-driven.org/Introduction
