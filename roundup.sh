@@ -23,7 +23,7 @@
 #     sudo make install
 #     # Alternatively, copy `roundup` wherever you like.
 #
-# __NOTE__:  Because test plans are sourced into roundup, roundup prefixes it's
+# __NOTE__:  Because test plans are sourced into roundup, roundup prefixes its
 # variable and function names with `roundup_` to avoid name collisions.  See
 # "Sandbox Test Runs" below for more insight.
 
@@ -68,7 +68,7 @@ fi
 
 # Create a temporary storage place for test output to be retrieved for display
 # after failing tests.
-roundup_tmp="$PWD/.roundup.$$"
+roundup_tmp=.roundup.$$
 mkdir -p $roundup_tmp
 
 trap "rm -rf $roundup_tmp" EXIT
@@ -94,15 +94,6 @@ roundup_trace() {
 # functions.
 roundup_isfunc() {
     [ "$(type -t "$1")" = function ] && true || false
-}
-
-# Defaults a non-function to `true`, which will execute quietly ignoring any
-# arguments, otherwise the function in question is returned.
-roundup_cfunc() {
-    if roundup_isfunc "$1"
-    then printf "$1"
-    else printf "true"
-    fi
 }
 
 # Track the test stats while outputting a real-time report.  This takes input on
@@ -143,18 +134,18 @@ roundup_summarize() {
         p)
             ntests=$(expr $ntests + 1)
             passed=$(expr $passed + 1)
-            printf "  $name: "
+            printf "  %s: " "$name"
             printf "$grn[PASS]$clr\n"
             ;;
         f)
             ntests=$(expr $ntests + 1)
             failed=$(expr $failed + 1)
-            printf "  $name: "
+            printf "  %s: " "$name"
             printf "$red[FAIL]$clr\n"
             roundup_trace < $roundup_tmp/$name
             ;;
         d)
-            printf "$name\n"
+            printf "%s\n" "$name"
             ;;
         esac
     done
@@ -175,7 +166,7 @@ roundup_summarize() {
 # -----------------
 
 # The above checks guarantee we have at least one test.  We can now move through
-# each specified test plan, determine it's test plan, and administer each test
+# each specified test plan, determine its test plan, and administer each test
 # listed in a isolated sandbox.
 for roundup_p in $roundup_plans
 do
@@ -196,6 +187,11 @@ do
             roundup_desc="$*"
         }
 
+        # Provide default `before` and `after` functions that run only `:`, a
+        # no-op. They may or may not be redefined by the test plan.
+        before() { :; }
+        after() { :; }
+
         # Seek test methods and aggregate their names, forming a test plan.
         # This is done before populating the sandbox with tests to avoid odd
         # conflicts.
@@ -208,17 +204,12 @@ do
         )
 
         # We have the test plan and are in our sandbox with [roundup(5)][r5]
-        # defined.  Now we source the plan to bring it's tests into scope.
+        # defined.  Now we source the plan to bring its tests into scope.
         . $roundup_p
 
         # Output the description signal
-        roundup_desc=$(printf "$roundup_desc" | tr "\n" " ")
-        printf "d $roundup_desc\n"
-
-        # Consider `before` and `after` usable if present or default them to
-        # `true` if not.
-        roundup_before=$(roundup_cfunc before)
-        roundup_after=$(roundup_cfunc after)
+        printf "d %s" "$roundup_desc" | tr "\n" " "
+        printf "\n"
 
         for roundup_test_name in $roundup_plan
         do
@@ -226,36 +217,36 @@ do
             # fact, a function.
             if roundup_isfunc $roundup_test_name
             then
-                # If before wasn't defined, then this is `true`.
-                $roundup_before
+                # If `before` wasn't redefined, then this is `:`.
+                before
 
                 # Momentarily turn of auto-fail to give us access to the tests
                 # exit status in `$?` for capturing.
                 set +e
                 (
-                    # Set `-xe` before the `eval` in the subshell.  We want the test
+                    # Set `-xe` before the test in the subshell.  We want the test
                     # to fail fast to allow for more accurate output of where things
                     # went wrong but not in _our_ process because a failed test
                     # should not immediately fail roundup.  Each tests trace output
                     # is saved in temporary storage.
                     set -xe
-                    eval "$roundup_test_name"
+                    $roundup_test_name
                 ) >$roundup_tmp/$roundup_test_name 2>&1
 
-                # We need capture the exit status before returning the set -e
-                # mode.  Returning with `set -e` before we capture the exit
-                # status will result in `$?` being set with `set`'s status
+                # We need to capture the exit status before returning the
+                # `set -e` mode.  Returning with `set -e` before we capture the
+                # exit status will result in `$?` being set with `set`'s status
                 # instead.
                 roundup_result=$?
 
                 # It's safe to return to normal operation.
                 set -e
 
-                # If `after` wasn't defined, then this is `true`.
-                $roundup_after
+                # If `after` wasn't redefined, then this runs `:`.
+                after
 
-                # This is the final step of a test.  Print it's pass/fail signal
-                # and name 
+                # This is the final step of a test.  Print its pass/fail signal
+                # and name.
                 if [ "$roundup_result" -ne 0 ]
                 then printf "f"
                 else printf "p"
