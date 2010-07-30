@@ -1,5 +1,8 @@
 .POSIX:
 SHELL = /bin/sh
+RM = rm
+CP = cp
+CD = cd
 
 # The default target ...
 all::
@@ -76,6 +79,16 @@ install: $(INSTALL_PREREQUISITES)
 
 install-man: man
 	-for i in {1..9} ; do cp *.$$i $(mandir)/man$$i 2>/dev/null ; done
+
+.PHONY: pages
+pages : doc
+	-$(RM) -rf pages
+	$(GIT) fetch -q gist
+	$(GIT) branch -f gh-pages gist/gh-pages
+	$(GIT) clone -q -o local -b gh-pages . pages
+	$(CP) $(DOCS) $(PWD)/pages
+	$(CP) Pages.mk pages/Makefile
+	$(CD) pages && $(MAKE) $(MFLAGS) all
 
 read: sup doc
 	$(BROWSER) ./roundup.html

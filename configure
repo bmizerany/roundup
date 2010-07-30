@@ -186,6 +186,7 @@ else stdutil xdg-open   XDG_OPEN   xdg-open
      reconf BROWSER "${XDG_OPEN:-$FIREFOX}"
 fi
 
+stdutil git        GIT        git
 stdutil ronn       RONN       ronn
 stdutil shocco     SHOCCO     shocco
 
