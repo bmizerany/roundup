@@ -52,6 +52,11 @@ expr -- "$*" : ".*--help" >/dev/null && {
     exit 0
 }
 
+expr -- "$*" : ".*--version" >/dev/null && {
+    echo "roundup version $ROUNDUP_VERSION"
+    exit 0
+}
+
 # Consider all scripts with names matching `*-test.sh` the plans to run unless
 # otherwise specified as arguments.
 if [ "$#" -gt "0" ]
