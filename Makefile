@@ -68,7 +68,7 @@ ifdef RONN
 else
 	@echo Unable to find ronn to recompile man pages.
 	@echo See http://rtomayko.github.com/ronn for install instructions
-	@exit 1
+	exit 1
 endif
 
 install: $(INSTALL_PREREQUISITES)
@@ -94,10 +94,10 @@ read: sup doc
 	$(BROWSER) ./roundup.html
 
 clean:
-	rm -f $(PROGRAMS) $(DOCS) $(ROFFS)
+	$(RM) -rf $(PROGRAMS) $(DOCS) $(ROFFS) pages/
 
 distclean: clean
-	rm -f $(DISTFILES)
+	$(RM) -rf $(DISTFILES)
 
 .PHONY: FORCE
 
