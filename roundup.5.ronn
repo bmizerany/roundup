@@ -1,0 +1,64 @@
+roundup(5) -- test-plan file format for roundup(1)
+==========================================================
+
+[r1t]: http://github.com/bmizerany/tree/v0.5.0/roundup-1-test.sh.html
+[r5t]: http://github.com/bmizerany/tree/v0.5.0/roundup-5-test.sh.html
+
+## SYNOPSIS
+
+  my-utility-test.sh
+
+## DESCRIPTION
+
+  A test-plan is a simple shell script that contains tests.  Tests are function whose
+  names are prefixed with `it_`.
+
+  Roundup will extract these function names and run them in a sandbox.  Each
+  test is run in its own sandbox to prevent false positives.
+
+  Example:
+
+    describe "My Utility"
+
+    it_displays_usage() {
+      usage=$(./my-utility | head -n 1)
+      test "$usage" = "usage: my-utility [arg1 ... argN]"
+    }
+
+  The `describe` function is defined in your sandbox as a convenient way to
+  give the test-plan a more meaningful name than the default.
+
+  When setup and tear-down are needed, create a `before` and/or `after` function.
+  They are run before and after each test in the plan.  These are useful for
+  cleaning up the file system or any environmental changes that may trip up
+  tests.
+
+  For a complete working example, see [roundup-5-test.sh][r5t] and
+  [roundup-1-test.sh][r1t]
+
+## BUGS
+
+  There will be bugs.  Please report them at
+  [here](http://github.com/bmizerany/roundup/issues)
+
+## AUTHOR
+
+  Blake Mizerany (http://blakemizerany.com/about)
+
+## COPYRIGHT
+
+  (c) 2010 Blake Mizerany
+
+  `roundup` is licenced under the MIT open-source licence.
+
+## SEE ALSO
+
+  roundup(5), test(1)
+
+## NOTES
+
+  Contest - http://blog.citrusbyte.com/2009/05/19/introducing-contest
+
+  Unit Testing - http://en.wikipedia.org/wiki/Unit_testing
+
+  Behaviour Driven Development - http://behaviour-driven.org/Introduction

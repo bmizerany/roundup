@@ -45,12 +45,10 @@ Blake Mizerany (bmizerany)
 
 ## SEE ALSO
 
-roundup(5), test(1)
+roundup(1), test(1)
 
 ## NOTES
 
-* Unit Testing:
-  http://en.wikipedia.org/wiki/Unit_testing
-
-* Behaviour Driven Development:
-  http://behaviour-driven.org/Introduction
+Contest - http://blog.citrusbyte.com/2009/05/19/introducing-contest
+Unit Testing - http://en.wikipedia.org/wiki/Unit_testing
+Behaviour Driven Development - http://behaviour-driven.org/Introduction
