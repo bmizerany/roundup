@@ -32,7 +32,7 @@ test -f $r5tf || {
 }
 
 r5t() {
-    sh $0 $r5tf
+    /bin/sh $0 $r5tf
 }
 
 # The Plan
@@ -44,4 +44,9 @@ describe "roundup(1) testing roundup(5)"
 it_displays_the_title() {
     first_line=$(r5t | head -n 1)
     test "$first_line" "=" "roundup(5)"
+}
+
+it_exists_non_zero() {
+    status=$(set +e ; r5t >/dev/null ; echo $?)
+    test 2 -eq $status
 }

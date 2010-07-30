@@ -165,6 +165,9 @@ roundup_summarize() {
     printf "Passed: %3d | " $passed
     printf "Failed: %3d"    $failed
     printf "\n"
+
+    # Exit with an error if any tests failed
+    test $failed -eq 0 || exit 2
 }
 
 # Sandbox Test Runs
