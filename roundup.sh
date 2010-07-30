@@ -208,7 +208,7 @@ do
 
         # We have the test plan and are in our sandbox with [roundup(5)][r5]
         # defined.  Now we source the plan to bring its tests into scope.
-        . $roundup_p
+        . ./$roundup_p
 
         # Output the description signal
         printf "d %s" "$roundup_desc" | tr "\n" " "
