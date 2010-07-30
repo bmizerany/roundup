@@ -149,7 +149,11 @@ roundup_summarize() {
     # __Test Summary__
     #
     # Display the summary now that all tests are finished.
-    printf "=======================================\n"
+    for i in $(seq 57)
+    do
+        printf =
+    done
+    printf "\n"
     printf "Tests:  %3d | " $ntests
     printf "Passed: %3d | " $passed
     printf "Failed: %3d"    $failed
