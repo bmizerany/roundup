@@ -41,7 +41,7 @@ export ROUNDUP_VERSION
 # Usage is defined in a specific comment syntax. It is `grep`ed out of this file
 # when needed (i.e. The Tomayko Method).  See
 # [shocco](http://rtomayko.heroku.com/shocco) for more detail.
-#/ usage: roundup [plan ...]
+#/ usage: roundup [--help] [--version] [plan ...]
 
 roundup_usage() {
     grep '^#/' <"$0" | cut -c4-
