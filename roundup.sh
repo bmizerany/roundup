@@ -9,7 +9,7 @@
 # survive **roundup**'s deathly toxic properties, they are considered
 # roundup-ready.
 #
-# roundup reads shell scripts to form test plans.  Each
+# **roundup** reads shell scripts to form test plans.  Each
 # test plan is sourced into a sandbox where each test is executed.
 #
 # See [roundup-1-test.sh.html][r1t] or [roundup-5-test.sh.html][r5t] for example
@@ -40,21 +40,19 @@ VERSION="0.1.0"
 # Usage is defined in a specific comment syntax. It is `grep`ed out of this file
 # when needed (i.e. The Tomayko Method).  See
 # [shocco](http://rtomayko.heroku.com/shocco) for more detail.
-
 #/ usage: roundup [plan ...]
 
 roundup_usage() {
     grep '^#/' <"$0" | cut -c4-
 }
 
-# Usage expected.  Run `usage` and exit clean.
 expr -- "$*" : ".*--help" >/dev/null && {
     roundup_usage
     exit 0
 }
 
-# Store test plans for looping and state assumptions about test scoring.  These
-# will be recalculated as each test runs.
+# Consider all scripts with names matching `*-test.sh` the plans to run unless
+# otherwise specified as arguments.
 if [ "$#" -gt "0" ]
 then
     roundup_plans="$@"
@@ -62,13 +60,13 @@ else
     roundup_plans="$(ls *-test.sh)"
 fi
 
-# Create a temporary storage place where the each tests output will be saved for
-# later display if needed.
+# Create a temporary storage place for test output to be retrieved for display
+# after failing tests.
 roundup_tmp="$PWD/.roundup.$$"
 rm -rf $roundup_tmp
 mkdir $roundup_tmp
 
-# Outputs a trimmed, highlighted trace taken given as the first argument.
+# __Tracing failures__
 roundup_trace() {
     # Delete the first two lines that represent roundups execution of the
     # test function.  They are useless to the user.
@@ -83,10 +81,16 @@ roundup_trace() {
     sed "\$s/\(.*\)/$mag\1$clr/"
 }
 
+# __Other helpers__
+
+# This is used below to test if `before`, `after`, and tests are really
+# functions.
 roundup_isfunc() {
     [ "$(type -t "$1")" = function ] && true || false
 }
 
+# Defaults a non-function to `true`, which will execute quietly ignoring any
+# arguments, otherwise the function in question is returned.
 roundup_cfunc() {
     if roundup_isfunc "$1"
     then printf "$1"
@@ -94,12 +98,21 @@ roundup_cfunc() {
     fi
 }
 
-# Displays the formatted results of a test.
-# usage: roundup_run <name> <p|f>
+# Track the test stats while outputting a real-time report.  This takes input on
+# **stdin**.  Each input line must come in the format of:
+#
+#     # The plan description to be displayed
+#     d <plan description>
+#
+#     # A passing test
+#     p <test name>
+#
+#     # A failed test
+#     f <test name>
 roundup_summarize() {
     set -e
-    # Colors for output
-    # -----------------
+
+    # __Colors for output__
 
     # Use colors if we are writing to a tty device.
     if test -t 1
@@ -110,9 +123,9 @@ roundup_summarize() {
         clr=$(printf "\033[m")
     fi
 
+    # Make these available to `roundup_trace`.
     export red grn mag clr
 
-    # Track the total number of tests, which passed, and which failed.
     ntests=0
     passed=0
     failed=0
@@ -138,10 +151,8 @@ roundup_summarize() {
             ;;
         esac
     done
-
-    # Test Summary
-    # ------------
-
+    # __Test Summary__
+    #
     # Display the summary now that all tests are finished.
     printf "=======================================\n"
     printf "Tests:  %3d | " $ntests
@@ -194,14 +205,11 @@ do
         roundup_desc=$(printf "$roundup_desc" | tr "\n" " ")
         printf "d $roundup_desc\n"
 
-        # Consider `before` and `after` usable if present
+        # Consider `before` and `after` usable if present or default them to
+        # `true` if not.
         roundup_before=$(roundup_cfunc before)
         roundup_after=$(roundup_cfunc after)
 
-        # Determine the test plan and administer each test. Score as we go.  The
-        # total grade will be determined once all suites pass.  Before each
-        # test, turn off automatic failure on command error so we can handle it
-        # as a test failure and not a script failure.
         for roundup_test_name in $roundup_plan
         do
             # Avoid executing a non-function by checking the name we have is, in
@@ -211,13 +219,15 @@ do
                 # If before wasn't defined, then this is `true`.
                 $roundup_before
 
-                # Set `-xe` before the `eval` in the subshell.  We want the test
-                # to fail fast to allow for more accurate output of where things
-                # went wrong but not in _our_ process because a failed test
-                # should not immediately fail roundup.  Each tests trace output
-                # is saved in temprorary storage.
+                # Momentarily turn of auto-fail to give us access to the tests
+                # exit status in `$?` for capturing.
                 set +e
                 (
+                    # Set `-xe` before the `eval` in the subshell.  We want the test
+                    # to fail fast to allow for more accurate output of where things
+                    # went wrong but not in _our_ process because a failed test
+                    # should not immediately fail roundup.  Each tests trace output
+                    # is saved in temporary storage.
                     set -xe
                     eval "$roundup_test_name"
                 ) >$roundup_tmp/$roundup_test_name 2>&1
@@ -234,14 +244,18 @@ do
                 # If `after` wasn't defined, then this is `true`.
                 $roundup_after
 
+                # This is the final step of a test.  Print it's pass/fail signal
+                # and name 
                 if [ "$roundup_result" -ne 0 ]
                 then printf "f"
                 else printf "p"
                 fi
 
-                printf " "
-                printf "$roundup_test_name\n"
+                printf " $roundup_test_name\n"
             fi
         done
     )
-done | roundup_summarize
+done |
+
+# All signals are piped to this for summary.
+roundup_summarize
