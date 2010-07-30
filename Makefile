@@ -67,7 +67,7 @@ ifdef RONN
 	ronn -Wr $?
 else
 	@echo Unable to find ronn to recompile man pages.
-	@echo See http://rtomayko.github.com/ronn for install instructions
+	@echo See http://bmizerany.github.com/roundup for install instructions
 	exit 1
 endif
 
