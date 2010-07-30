@@ -33,9 +33,6 @@
 # Exit if any following command exits with a non-zero status.
 set -e
 
-# Error on any unbound variables
-set -u
-
 # The current version is set during `make version`.  Do not modify this line in
 # anyway unless you know what you're doing.
 VERSION="0.1.0"
@@ -106,10 +103,6 @@ roundup_summarize() {
 
     # If we are writing to a tty device or we've been asked to always show colors,
     # we use colors.
-    red=
-    grn=
-    mag=
-    clr=
     if test -t 1
     then
         red=$(printf "\033[31m")
