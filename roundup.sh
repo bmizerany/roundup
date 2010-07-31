@@ -171,7 +171,7 @@ do
     # Create a sandbox, source the test plan, run the tests, then leave
     # without a trace.
     (
-        # Consider the description to be the `basename` of <plan> minus the
+        # Consider the description to be the `basename` of the plan minus the
         # tailing -test.sh.
         roundup_desc=$(basename "$roundup_p" -test.sh)
 
@@ -214,7 +214,7 @@ do
             # If `before` wasn't redefined, then this is `:`.
             before
 
-            # Momentarily turn of auto-fail to give us access to the tests
+            # Momentarily turn off auto-fail to give us access to the tests
             # exit status in `$?` for capturing.
             set +e
             (
