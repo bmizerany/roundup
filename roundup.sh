@@ -83,7 +83,7 @@ roundup_trace() {
     sed 's/^++//'                              |
     # Indent the output by 4 spaces to align under the test name in the
     # summary.
-    sed 's/^\(.*\)$/    \1/'                   |
+    sed 's/^/    /'                            |
     # Highlight the last line to bring notice to where the error occurred.
     sed "\$s/\(.*\)/$mag\1$clr/"
 }
