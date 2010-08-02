@@ -139,7 +139,7 @@ roundup executed the function.  They also, are useless and confusing.</p>
 summary.</p>
 
 </td><td class=code><div class=highlight><pre>
-    sed <span class="s1">&#39;s/^\(.*\)$/    \1/&#39;</span>                   |
+    sed <span class="s1">&#39;s/^/    /&#39;</span>                            |
 </pre></div></td></tr><tr><td class=docs>
 
 <p>Highlight the last line to bring notice to where the error occurred.</p>
@@ -273,7 +273,7 @@ without a trace.</p>
     <span class="o">(</span>
 </pre></div></td></tr><tr><td class=docs>
 
-<p>Consider the description to be the <code>basename</code> of <plan> minus the
+<p>Consider the description to be the <code>basename</code> of the plan minus the
 tailing -test.sh.</p>
 
 </td><td class=code><div class=highlight><pre>
@@ -352,7 +352,7 @@ defined.  Now we source the plan to bring its tests into scope.</p>
 
 </pre></div></td></tr><tr><td class=docs>
 
-<p>Momentarily turn of auto-fail to give us access to the tests
+<p>Momentarily turn off auto-fail to give us access to the tests
 exit status in <code>$?</code> for capturing.</p>
 
 </td><td class=code><div class=highlight><pre>
