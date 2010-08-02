@@ -58,6 +58,10 @@ do
             echo "roundup version $ROUNDUP_VERSION"
             exit 0
             ;;
+        --color)
+            color=always
+            shift
+            ;;
         -)
             echo >&2 "roundup: unknown switch $1"
             exit 1
@@ -76,6 +80,8 @@ then
 else
     roundup_plans="$(ls *-test.sh)"
 fi
+
+: ${color:="auto"}
 
 # Create a temporary storage place for test output to be retrieved for display
 # after failing tests.
@@ -118,6 +124,7 @@ roundup_summarize() {
     # __Colors for output__
 
     # Use colors if we are writing to a tty device.
+    if (test -t 1) || (test $color = always)
     then
         red=$(printf "\033[31m")
         grn=$(printf "\033[32m")
