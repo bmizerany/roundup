@@ -41,21 +41,32 @@ export ROUNDUP_VERSION
 # Usage is defined in a specific comment syntax. It is `grep`ed out of this file
 # when needed (i.e. The Tomayko Method).  See
 # [shocco](http://rtomayko.heroku.com/shocco) for more detail.
-#/ usage: roundup [--help] [--version] [plan ...]
+#/ usage: roundup [--help|-h] [--version|-v] [plan ...]
 
 roundup_usage() {
     grep '^#/' <"$0" | cut -c4-
 }
 
-expr -- "$*" : ".*--help" >/dev/null && {
-    roundup_usage
-    exit 0
-}
-
-expr -- "$*" : ".*--version" >/dev/null && {
-    echo "roundup version $ROUNDUP_VERSION"
-    exit 0
-}
+while test "$#" -gt 0
+do
+    case "$1" in
+        --help|-h)
+            roundup_usage
+            exit 0
+            ;;
+        --version|-v)
+            echo "roundup version $ROUNDUP_VERSION"
+            exit 0
+            ;;
+        -)
+            echo >&2 "roundup: unknown switch $1"
+            exit 1
+            ;;
+        *)
+            break
+            ;;
+    esac
+done
 
 # Consider all scripts with names matching `*-test.sh` the plans to run unless
 # otherwise specified as arguments.
@@ -107,7 +118,6 @@ roundup_summarize() {
     # __Colors for output__
 
     # Use colors if we are writing to a tty device.
-    if test -t 1
     then
         red=$(printf "\033[31m")
         grn=$(printf "\033[32m")
