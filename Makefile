@@ -84,8 +84,8 @@ install-man: man
 .PHONY: pages
 pages : doc
 	-$(RM) -rf pages
-	$(GIT) fetch -q gist
-	$(GIT) branch -f gh-pages gist/gh-pages
+	$(GIT) fetch -q origin
+	$(GIT) branch -f gh-pages origin/gh-pages
 	$(GIT) clone -q -o local -b gh-pages . pages
 	$(CP) $(DOCS) $(PWD)/pages
 	$(CP) Pages.mk pages/Makefile
