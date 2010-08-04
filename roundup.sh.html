@@ -73,21 +73,36 @@ when needed (i.e. The Tomayko Method).  See
 <a href="http://rtomayko.heroku.com/shocco">shocco</a> for more detail.</p>
 
 </td><td class=code><div class=highlight><pre>
-<span class="c">#/ usage: roundup [--help] [--version] [plan ...]</span>
+<span class="c">#/ usage: roundup [--help|-h] [--version|-v] [plan ...]</span>
 
 roundup_usage<span class="o">()</span> <span class="o">{</span>
     grep <span class="s1">&#39;^#/&#39;</span> &lt;<span class="s2">&quot;$0&quot;</span> | cut -c4-
 <span class="o">}</span>
 
-expr -- <span class="s2">&quot;$*&quot;</span> : <span class="s2">&quot;.*--help&quot;</span> &gt;/dev/null <span class="o">&amp;&amp;</span> <span class="o">{</span>
-    roundup_usage
-    <span class="nb">exit </span>0
-<span class="o">}</span>
-
-expr -- <span class="s2">&quot;$*&quot;</span> : <span class="s2">&quot;.*--version&quot;</span> &gt;/dev/null <span class="o">&amp;&amp;</span> <span class="o">{</span>
-    <span class="nb">echo</span> <span class="s2">&quot;roundup version $ROUNDUP_VERSION&quot;</span>
-    <span class="nb">exit </span>0
-<span class="o">}</span>
+<span class="k">while </span><span class="nb">test</span> <span class="s2">&quot;$#&quot;</span> -gt 0
+<span class="k">do</span>
+<span class="k">    case</span> <span class="s2">&quot;$1&quot;</span> in
+        --help|-h<span class="o">)</span>
+            roundup_usage
+            <span class="nb">exit </span>0
+            ;;
+        --version|-v<span class="o">)</span>
+            <span class="nb">echo</span> <span class="s2">&quot;roundup version $ROUNDUP_VERSION&quot;</span>
+            <span class="nb">exit </span>0
+            ;;
+        --color<span class="o">)</span>
+            <span class="nv">color</span><span class="o">=</span>always
+            <span class="nb">shift</span>
+            ;;
+        -<span class="o">)</span>
+            <span class="nb">echo</span> &gt;&amp;2 <span class="s2">&quot;roundup: unknown switch $1&quot;</span>
+            <span class="nb">exit </span>1
+            ;;
+        *<span class="o">)</span>
+            <span class="nb">break</span>
+            ;;
+    <span class="k">esac</span>
+<span class="k">done</span>
 
 </pre></div></td></tr><tr><td class=docs>
 
@@ -102,16 +117,18 @@ otherwise specified as arguments.</p>
 <span class="k">    </span><span class="nv">roundup_plans</span><span class="o">=</span><span class="s2">&quot;$(ls *-test.sh)&quot;</span>
 <span class="k">fi</span>
 
+: <span class="k">${</span><span class="nv">color</span><span class="p">:=</span><span class="s2">&quot;auto&quot;</span><span class="k">}</span>
+
 </pre></div></td></tr><tr><td class=docs>
 
 <p>Create a temporary storage place for test output to be retrieved for display
 after failing tests.</p>
 
 </td><td class=code><div class=highlight><pre>
-<span class="nv">roundup_tmp</span><span class="o">=</span>.roundup.<span class="nv">$$</span>
+<span class="nv">roundup_tmp</span><span class="o">=</span><span class="s2">&quot;$PWD/.roundup.$$&quot;</span>
 mkdir -p <span class="nv">$roundup_tmp</span>
 
-<span class="nb">trap</span> <span class="s2">&quot;rm -rf $roundup_tmp&quot;</span> EXIT
+<span class="nb">trap</span> <span class="s2">&quot;rm -rf \&quot;$roundup_tmp\&quot;&quot;</span> EXIT
 
 </pre></div></td></tr><tr><td class=docs>
 
@@ -184,7 +201,7 @@ roundup_summarize<span class="o">()</span> <span class="o">{</span>
 <p>Use colors if we are writing to a tty device.</p>
 
 </td><td class=code><div class=highlight><pre>
-    <span class="k">if </span><span class="nb">test</span> -t 1
+    <span class="k">if</span> <span class="o">(</span><span class="nb">test</span> -t 1<span class="o">)</span> <span class="o">||</span> <span class="o">(</span><span class="nb">test</span> <span class="nv">$color</span> <span class="o">=</span> always<span class="o">)</span>
     <span class="k">then</span>
 <span class="k">        </span><span class="nv">red</span><span class="o">=</span><span class="k">$(</span><span class="nb">printf</span> <span class="s2">&quot;\033[31m&quot;</span><span class="k">)</span>
         <span class="nv">grn</span><span class="o">=</span><span class="k">$(</span><span class="nb">printf</span> <span class="s2">&quot;\033[32m&quot;</span><span class="k">)</span>
@@ -220,7 +237,7 @@ roundup_summarize<span class="o">()</span> <span class="o">{</span>
             <span class="nv">failed</span><span class="o">=</span><span class="k">$(</span>expr <span class="nv">$failed</span> + 1<span class="k">)</span>
             <span class="nb">printf</span> <span class="s2">&quot;  %-48s &quot;</span> <span class="s2">&quot;$name:&quot;</span>
             <span class="nb">printf</span> <span class="s2">&quot;$red[FAIL]$clr\n&quot;</span>
-            roundup_trace &lt; <span class="nv">$roundup_tmp</span>/<span class="nv">$name</span>
+            roundup_trace &lt; <span class="s2">&quot;$roundup_tmp/$name&quot;</span>
             ;;
         d<span class="o">)</span>
             <span class="nb">printf</span> <span class="s2">&quot;%s\n&quot;</span> <span class="s2">&quot;$name&quot;</span>
@@ -345,10 +362,18 @@ defined.  Now we source the plan to bring its tests into scope.</p>
         <span class="k">do</span>
 </pre></div></td></tr><tr><td class=docs>
 
+<p>Any number of things are possible in <code>before</code>, <code>after</code>, and the
+test.  Drop into an subshell to contain operations that may throw
+off roundup; such as <code>cd</code>.</p>
+
+</td><td class=code><div class=highlight><pre>
+            <span class="o">(</span>
+</pre></div></td></tr><tr><td class=docs>
+
 <p>If <code>before</code> wasn't redefined, then this is <code>:</code>.</p>
 
 </td><td class=code><div class=highlight><pre>
-            before
+                before
 
 </pre></div></td></tr><tr><td class=docs>
 
@@ -356,44 +381,44 @@ defined.  Now we source the plan to bring its tests into scope.</p>
 exit status in <code>$?</code> for capturing.</p>
 
 </td><td class=code><div class=highlight><pre>
-            <span class="nb">set</span> +e
-            <span class="o">(</span>
+                <span class="nb">set</span> +e
+                <span class="o">(</span>
 </pre></div></td></tr><tr><td class=docs>
 
-<p>Set <code>-xe</code> before the test in the subshell.  We want the test
-to fail fast to allow for more accurate output of where things
-went wrong but not in <em>our</em> process because a failed test
-should not immediately fail roundup.  Each tests trace output
-is saved in temporary storage.</p>
+<p>Set <code>-xe</code> before the test in the subshell.  We want the
+test to fail fast to allow for more accurate output of
+where things went wrong but not in <em>our</em> process because a
+failed test should not immediately fail roundup.  Each
+tests trace output is saved in temporary storage.</p>
 
 </td><td class=code><div class=highlight><pre>
-                <span class="nb">set</span> -xe
-                <span class="nv">$roundup_test_name</span>
-            <span class="o">)</span> &gt;<span class="nv">$roundup_tmp</span>/<span class="nv">$roundup_test_name</span> 2&gt;&amp;1
+                    <span class="nb">set</span> -xe
+                    <span class="nv">$roundup_test_name</span>
+                <span class="o">)</span> &gt;<span class="s2">&quot;$roundup_tmp/$roundup_test_name&quot;</span> 2&gt;&amp;1
 
 </pre></div></td></tr><tr><td class=docs>
 
-<p>We need to capture the exit status before returning the
-<code>set -e</code> mode.  Returning with <code>set -e</code> before we capture the
-exit status will result in <code>$?</code> being set with <code>set</code>'s status
+<p>We need to capture the exit status before returning the <code>set
+-e</code> mode.  Returning with <code>set -e</code> before we capture the exit
+status will result in <code>$?</code> being set with <code>set</code>'s status
 instead.</p>
 
 </td><td class=code><div class=highlight><pre>
-            <span class="nv">roundup_result</span><span class="o">=</span><span class="nv">$?</span>
+                <span class="nv">roundup_result</span><span class="o">=</span><span class="nv">$?</span>
 
 </pre></div></td></tr><tr><td class=docs>
 
 <p>It's safe to return to normal operation.</p>
 
 </td><td class=code><div class=highlight><pre>
-            <span class="nb">set</span> -e
+                <span class="nb">set</span> -e
 
 </pre></div></td></tr><tr><td class=docs>
 
 <p>If <code>after</code> wasn't redefined, then this runs <code>:</code>.</p>
 
 </td><td class=code><div class=highlight><pre>
-            after
+                after
 
 </pre></div></td></tr><tr><td class=docs>
 
@@ -401,12 +426,13 @@ instead.</p>
 and name.</p>
 
 </td><td class=code><div class=highlight><pre>
-            <span class="k">if</span> <span class="o">[</span> <span class="s2">&quot;$roundup_result&quot;</span> -ne 0 <span class="o">]</span>
-            <span class="k">then </span><span class="nb">printf</span> <span class="s2">&quot;f&quot;</span>
-            <span class="k">else </span><span class="nb">printf</span> <span class="s2">&quot;p&quot;</span>
-            <span class="k">fi</span>
+                <span class="k">if</span> <span class="o">[</span> <span class="s2">&quot;$roundup_result&quot;</span> -ne 0 <span class="o">]</span>
+                <span class="k">then </span><span class="nb">printf</span> <span class="s2">&quot;f&quot;</span>
+                <span class="k">else </span><span class="nb">printf</span> <span class="s2">&quot;p&quot;</span>
+                <span class="k">fi</span>
 
-<span class="k">            </span><span class="nb">printf</span> <span class="s2">&quot; $roundup_test_name\n&quot;</span>
+<span class="k">                </span><span class="nb">printf</span> <span class="s2">&quot; $roundup_test_name\n&quot;</span>
+            <span class="o">)</span>
         <span class="k">done</span>
     <span class="o">)</span>
 <span class="k">done</span> |

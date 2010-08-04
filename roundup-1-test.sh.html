@@ -41,24 +41,11 @@ the <a href="roundup-5-test.html">roundup(5) test</a>.</p>
 
 </pre></div></td></tr><tr><td class=docs>
 
-<h2>Prerequisits</h2>
+<h2>Helpers</h2>
 
 </td><td class=code><div class=highlight><pre>
 
-</pre></div></td></tr><tr><td class=docs>
-
-<p>Before anything, we need to know if what we're testing exists.</p>
-
-</td><td class=code><div class=highlight><pre>
-<span class="nv">r5tf</span><span class="o">=</span>roundup-5-test.sh
-<span class="nb">test</span> -f <span class="nv">$r5tf</span> <span class="o">||</span> <span class="o">{</span>
-    <span class="nb">echo </span>1&gt;&amp;2 <span class="s1">&#39;! fatal:&#39;</span> <span class="s2">&quot;$r5tf does not exist in $PWD; exiting.&quot;</span>
-    <span class="nb">exit </span>1
-<span class="o">}</span>
-
-r5t<span class="o">()</span> <span class="o">{</span>
-    /bin/sh <span class="nv">$0</span> <span class="nv">$r5tf</span>
-<span class="o">}</span>
+rup<span class="o">()</span> <span class="o">{</span> /bin/sh <span class="nv">$0</span> <span class="nv">$1</span>-test.sh ; <span class="o">}</span>
 
 </pre></div></td></tr><tr><td class=docs>
 
@@ -74,13 +61,17 @@ r5t<span class="o">()</span> <span class="o">{</span>
 describe <span class="s2">&quot;roundup(1) testing roundup(5)&quot;</span>
 
 it_displays_the_title<span class="o">()</span> <span class="o">{</span>
-    <span class="nv">first_line</span><span class="o">=</span><span class="k">$(</span>r5t | head -n 1<span class="k">)</span>
+    <span class="nv">first_line</span><span class="o">=</span><span class="k">$(</span>rup roundup-5 | head -n 1<span class="k">)</span>
     <span class="nb">test</span> <span class="s2">&quot;$first_line&quot;</span> <span class="s2">&quot;=&quot;</span> <span class="s2">&quot;roundup(5)&quot;</span>
 <span class="o">}</span>
 
 it_exists_non_zero<span class="o">()</span> <span class="o">{</span>
-    <span class="nv">status</span><span class="o">=</span><span class="k">$(</span><span class="nb">set</span> +e ; r5t &gt;/dev/null ; <span class="nb">echo</span> <span class="nv">$?</span><span class="k">)</span>
+    <span class="nv">status</span><span class="o">=</span><span class="k">$(</span><span class="nb">set</span> +e ; rup roundup-5 &gt;/dev/null ; <span class="nb">echo</span> <span class="nv">$?</span><span class="k">)</span>
     <span class="nb">test </span>2 -eq <span class="nv">$status</span>
+<span class="o">}</span>
+
+it_survives_edge_cases<span class="o">()</span> <span class="o">{</span>
+    rup edge
 <span class="o">}</span>
 
 

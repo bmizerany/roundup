@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-eqiv='content-type' content='text/html;charset=utf-8'>
+    <title>edge-test.sh</title>
+    <link rel=stylesheet href="http://jashkenas.github.com/docco/resources/docco.css">
+</head>
+<body>
+<div id=container>
+    <div id=background></div>
+    <table cellspacing=0 cellpadding=0>
+    <thead>
+      <tr>
+        <th class=docs><h1>edge-test.sh</h1></th>
+        <th class=code></th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr><td class='docs'><p>A <code>cd</code> in <code>before</code> cannot throw off roundup.</p>
+
+</td><td class=code><div class=highlight><pre>
+describe <span class="s2">&quot;Test edge cases that cannot throw off roundup&quot;</span>
+
+before<span class="o">()</span> <span class="o">{</span>
+<span class="nb">cd</span> /tmp
+
+</pre></div></td></tr><tr><td class=docs>
+
+<p>Mess with $PATH
+NOTE: Ordinarily, switching on the test name isn't ideal practice,
+we're messing with some strange edge-cases here, so I'm not to unhappy
+about it.</p>
+
+</td><td class=code><div class=highlight><pre>
+    <span class="k">if </span><span class="nb">test</span> <span class="nv">$roundup_test_name</span> <span class="o">=</span> <span class="s2">&quot;it_hath_not_path_before_thy&quot;</span>
+    <span class="k">then </span><span class="nv">PATH</span><span class="o">=</span>
+    <span class="k">fi</span>
+<span class="o">}</span>
+
+after<span class="o">()</span> <span class="o">{</span>
+    <span class="k">if </span><span class="nb">test</span> <span class="nv">$roundup_test_name</span> <span class="o">=</span> <span class="s2">&quot;it_hath_path_til_after&quot;</span>
+    <span class="k">then </span><span class="nv">PATH</span><span class="o">=</span>
+    <span class="k">fi</span>
+<span class="o">}</span>
+
+it_is_in_tmp<span class="o">()</span> <span class="o">{</span>
+    <span class="nb">test</span> <span class="s2">&quot;$(pwd)&quot;</span> <span class="o">=</span> <span class="s2">&quot;/tmp&quot;</span>
+<span class="o">}</span>
+
+it_hath_path_til_after<span class="o">()</span> <span class="o">{</span>
+    ls
+<span class="o">}</span>
+
+it_hath_not_path_before_thy<span class="o">()</span> <span class="o">{</span>
+    ! ls
+<span class="o">}</span>
+
+
+</td><td class=code><div class=highlight><pre>
+</pre></div></td></tr><tr><td class=docs>
+
+</pre></div></td></tr><tr><td class=docs>
+</td><td class=code><div class=highlight><pre>
+
+</pre></div></td></tr><tr><td class=docs></td><td class='code'></td></tr>
+    </tbody>
+    </table>
+</div>
+</body>
+</html>
