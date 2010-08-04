@@ -16,18 +16,25 @@
       </tr>
     </thead>
     <tbody>
-        <tr><td class='docs'><p>A <code>cd</code> in <code>before</code> cannot throw off roundup.</p>
+        <tr><td class='docs'><p>Explain</p>
 
 </td><td class=code><div class=highlight><pre>
+<span class="c">#!/usr/bin/env roundup</span>
+
 describe <span class="s2">&quot;Test edge cases that cannot throw off roundup&quot;</span>
 
 before<span class="o">()</span> <span class="o">{</span>
-<span class="nb">cd</span> /tmp
-
 </pre></div></td></tr><tr><td class=docs>
 
-<p>Mess with $PATH
-NOTE: Ordinarily, switching on the test name isn't ideal practice,
+<p>A <code>cd</code> in <code>before</code> cannot throw off roundup.</p>
+
+</td><td class=code><div class=highlight><pre>
+    <span class="nb">cd</span> /tmp
+</pre></div></td></tr><tr><td class=docs>
+
+<p>Mess with $PATH</p>
+
+<p>NOTE: Ordinarily, switching on the test name isn't ideal practice,
 we're messing with some strange edge-cases here, so I'm not to unhappy
 about it.</p>
 
@@ -38,6 +45,11 @@ about it.</p>
 <span class="o">}</span>
 
 after<span class="o">()</span> <span class="o">{</span>
+</pre></div></td></tr><tr><td class=docs>
+
+<p>Try messing with the $PATH in <code>after</code></p>
+
+</td><td class=code><div class=highlight><pre>
     <span class="k">if </span><span class="nb">test</span> <span class="nv">$roundup_test_name</span> <span class="o">=</span> <span class="s2">&quot;it_hath_path_til_after&quot;</span>
     <span class="k">then </span><span class="nv">PATH</span><span class="o">=</span>
     <span class="k">fi</span>
