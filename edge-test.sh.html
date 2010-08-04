@@ -60,11 +60,11 @@ it_is_in_tmp<span class="o">()</span> <span class="o">{</span>
 <span class="o">}</span>
 
 it_hath_path_til_after<span class="o">()</span> <span class="o">{</span>
-    ls
+    <span class="nb">command</span> -v ls &gt;/dev/null
 <span class="o">}</span>
 
 it_hath_not_path_before_thy<span class="o">()</span> <span class="o">{</span>
-    ! ls
+    ! <span class="nb">command</span> -v ls &gt;/dev/null
 <span class="o">}</span>
 
 
