@@ -21,19 +21,10 @@
 # Let's get started
 # -----------------
 
-# Prerequisits
+# Helpers
 # ------------
 
-# Before anything, we need to know if what we're testing exists.
-r5tf=roundup-5-test.sh
-test -f $r5tf || {
-    echo 1>&2 '! fatal:' "$r5tf does not exist in $PWD; exiting."
-    exit 1
-}
-
-r5t() {
-    /bin/sh $0 $r5tf
-}
+rup() { /bin/sh $0 $1-test.sh ; }
 
 # The Plan
 # --------
@@ -42,11 +33,15 @@ r5t() {
 describe "roundup(1) testing roundup(5)"
 
 it_displays_the_title() {
-    first_line=$(r5t | head -n 1)
+    first_line=$(rup roundup-5 | head -n 1)
     test "$first_line" "=" "roundup(5)"
 }
 
 it_exists_non_zero() {
-    status=$(set +e ; r5t >/dev/null ; echo $?)
+    status=$(set +e ; rup roundup-5 >/dev/null ; echo $?)
     test 2 -eq $status
+}
+
+it_survives_edge_cases() {
+    rup edge
 }

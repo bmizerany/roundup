@@ -85,10 +85,10 @@ fi
 
 # Create a temporary storage place for test output to be retrieved for display
 # after failing tests.
-roundup_tmp=.roundup.$$
+roundup_tmp="$PWD/.roundup.$$"
 mkdir -p $roundup_tmp
 
-trap "rm -rf $roundup_tmp" EXIT
+trap "rm -rf \"$roundup_tmp\"" EXIT
 
 # __Tracing failures__
 roundup_trace() {
@@ -156,7 +156,7 @@ roundup_summarize() {
             failed=$(expr $failed + 1)
             printf "  %-48s " "$name:"
             printf "$red[FAIL]$clr\n"
-            roundup_trace < $roundup_tmp/$name
+            roundup_trace < "$roundup_tmp/$name"
             ;;
         d)
             printf "%s\n" "$name"
@@ -228,42 +228,47 @@ do
 
         for roundup_test_name in $roundup_plan
         do
-            # If `before` wasn't redefined, then this is `:`.
-            before
-
-            # Momentarily turn off auto-fail to give us access to the tests
-            # exit status in `$?` for capturing.
-            set +e
+            # Any number of things are possible in `before`, `after`, and the
+            # test.  Drop into an subshell to contain operations that may throw
+            # off roundup; such as `cd`.
             (
-                # Set `-xe` before the test in the subshell.  We want the test
-                # to fail fast to allow for more accurate output of where things
-                # went wrong but not in _our_ process because a failed test
-                # should not immediately fail roundup.  Each tests trace output
-                # is saved in temporary storage.
-                set -xe
-                $roundup_test_name
-            ) >$roundup_tmp/$roundup_test_name 2>&1
+                # If `before` wasn't redefined, then this is `:`.
+                before
 
-            # We need to capture the exit status before returning the
-            # `set -e` mode.  Returning with `set -e` before we capture the
-            # exit status will result in `$?` being set with `set`'s status
-            # instead.
-            roundup_result=$?
+                # Momentarily turn off auto-fail to give us access to the tests
+                # exit status in `$?` for capturing.
+                set +e
+                (
+                    # Set `-xe` before the test in the subshell.  We want the
+                    # test to fail fast to allow for more accurate output of
+                    # where things went wrong but not in _our_ process because a
+                    # failed test should not immediately fail roundup.  Each
+                    # tests trace output is saved in temporary storage.
+                    set -xe
+                    $roundup_test_name
+                ) >"$roundup_tmp/$roundup_test_name" 2>&1
 
-            # It's safe to return to normal operation.
-            set -e
+                # We need to capture the exit status before returning the `set
+                # -e` mode.  Returning with `set -e` before we capture the exit
+                # status will result in `$?` being set with `set`'s status
+                # instead.
+                roundup_result=$?
 
-            # If `after` wasn't redefined, then this runs `:`.
-            after
+                # It's safe to return to normal operation.
+                set -e
 
-            # This is the final step of a test.  Print its pass/fail signal
-            # and name.
-            if [ "$roundup_result" -ne 0 ]
-            then printf "f"
-            else printf "p"
-            fi
+                # If `after` wasn't redefined, then this runs `:`.
+                after
 
-            printf " $roundup_test_name\n"
+                # This is the final step of a test.  Print its pass/fail signal
+                # and name.
+                if [ "$roundup_result" -ne 0 ]
+                then printf "f"
+                else printf "p"
+                fi
+
+                printf " $roundup_test_name\n"
+            )
         done
     )
 done |
