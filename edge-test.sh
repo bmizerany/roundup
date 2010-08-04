@@ -1,10 +1,13 @@
+#!/usr/bin/env roundup
+
+# Explain
 describe "Test edge cases that cannot throw off roundup"
 
 before() {
     # A `cd` in `before` cannot throw off roundup.
     cd /tmp
-
     # Mess with $PATH
+    #
     # NOTE: Ordinarily, switching on the test name isn't ideal practice,
     # we're messing with some strange edge-cases here, so I'm not to unhappy
     # about it.
@@ -14,6 +17,7 @@ before() {
 }
 
 after() {
+    # Try messing with the $PATH in `after`
     if test $roundup_test_name = "it_hath_path_til_after"
     then PATH=
     fi
