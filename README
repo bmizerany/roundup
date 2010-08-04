@@ -5,45 +5,7 @@ written in any POSIX shell.  Each test in a plan is run in it's own isolated
 sandbox.  A test can pass, be ignored, or fail.  Failed tests output their `set
 -x` trace.
 
-Example:
-
-  my-test.sh:
-
-    #!/bin/sh
-
-    describe "head(1)"
-
-    lines() {
-    cat <<LINES
-    first line
-    second line
-    LINES
-    }
-
-    it_displays_the_first_n_lines() {
-      result=$(lines | head -n1)
-      test "first line" "=" "$result"
-    }
-
-    # silly test to prove failures are recognized
-    it_displays_n_lines_from_the_tail() {
-      result=$(lines | head -n"-1")
-      test "second line" "=" "$result"
-    }
-
-  run:
-
-    $ roundup my-test.sh
-    head(1)
-      it_displays_the_first_n_lines:     [PASS]
-      it_displays_n_lines_from_the_tail: [FAIL]
-        ! ++ lines
-        ! ++ cat
-        ! ++ head -n-1
-        ! head: illegal line count -- -1
-        ! + result=
-    ==========================================
-    Tests:     2 | Passed:    1 | Failed:    1
 
 More information and examples:
+  http://itsbonus.heroku.com/p/2010-11-01-roundup
   http://bmizerany.github.com/roundup
