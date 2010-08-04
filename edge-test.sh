@@ -8,7 +8,7 @@ before() {
     cd /tmp
     # Mess with $PATH
     #
-    # NOTE: Ordinarily, switching on the test name isn't ideal practice,
+    # NOTE: Ordinarily, switching on the test name isn't ideal practice;
     # we're messing with some strange edge-cases here, so I'm not to unhappy
     # about it.
     if test $roundup_test_name = "it_hath_not_path_before_thy"
