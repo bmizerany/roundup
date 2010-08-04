@@ -28,9 +28,9 @@ it_is_in_tmp() {
 }
 
 it_hath_path_til_after() {
-    ls
+    command -v ls >/dev/null
 }
 
 it_hath_not_path_before_thy() {
-    ! ls
+    ! command -v ls >/dev/null
 }
