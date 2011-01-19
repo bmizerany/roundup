@@ -78,7 +78,7 @@ if [ "$#" -gt "0" ]
 then
     roundup_plans="$@"
 else
-    roundup_plans="$(ls *-test.sh)"
+    roundup_plans="$(ls t/*-test.sh)"
 fi
 
 : ${color:="auto"}
