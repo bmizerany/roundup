@@ -21,7 +21,7 @@ roundup(5).  If all tests pass, the shell is roundup-ready.
 ## BEHAVIOUR
 
 `roundup` run with no <plan>(s) specified will attempt to run all files matching
-$PWD/t/*-test.sh
+$PWD/*-test.sh
 
 ## EXIT STATUS
 
