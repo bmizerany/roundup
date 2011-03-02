@@ -88,8 +88,7 @@ fi
 roundup_tmp="$PWD/.roundup.$$"
 mkdir -p $roundup_tmp
 
-trap "rm -rf \"$roundup_tmp\"" EXIT
-trap "rm -rf \"$roundup_tmp\"" INT
+trap "rm -rf \"$roundup_tmp\"" EXIT INT
 
 # __Tracing failures__
 roundup_trace() {
