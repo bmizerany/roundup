@@ -47,6 +47,8 @@ roundup_usage() {
     grep '^#/' <"$0" | cut -c4-
 }
 
+roundup_workers=1
+
 while test "$#" -gt 0
 do
     case "$1" in
@@ -60,6 +62,13 @@ do
             ;;
         --color)
             color=always
+            shift
+            ;;
+        -j[1-9])
+            roundup_workers=$(
+                echo $1 | sed 's/-j\(.*\)/\1/'
+            )
+            echo roundup: parallel execution with $roundup_workers workers
             shift
             ;;
         -)
@@ -178,8 +187,20 @@ roundup_summarize() {
 }
 
 roundup_run_plan() {
+    roundup_from=$1
+    roundup_to=$2
+    roundup_i=-1
     for roundup_test_name in $roundup_plan
     do
+        roundup_i=$(($roundup_i+1))
+        if [ $roundup_i -lt $roundup_from ]
+        then
+            continue
+        fi
+        if [ $roundup_i -ge $roundup_to ]
+        then
+            break
+        fi
         # Any number of things are possible in `before`, `after`, and the
         # test.  Drop into an subshell to contain operations that may throw
         # off roundup; such as `cd`.
@@ -272,7 +293,25 @@ do
         printf "d %s" "$roundup_desc" | tr "\n" " "
         printf "\n"
 
-	roundup_run_plan
+        roundup_test_count=0
+        for roundup_test_name in $roundup_plan
+        do
+            roundup_test_count=$(($roundup_test_count+1))
+        done
+        roundup_step=$((roundup_test_count / roundup_workers))
+        echo $roundup_step > ~/lala.txt
+
+        for roundup_worker_index in $(seq 1 $roundup_workers)
+        do
+            roundup_test_from=$(( (roundup_worker_index-1)*roundup_step ))
+            roundup_test_to=$(( roundup_worker_index*roundup_step ))
+            if [ $roundup_worker_index -eq $roundup_workers ]
+            then
+                roundup_test_to=$roundup_test_count
+            fi
+            ( roundup_run_plan $roundup_test_from $roundup_test_to ) &
+        done
+        
     )
 done |
 
