@@ -299,7 +299,6 @@ do
             roundup_test_count=$(($roundup_test_count+1))
         done
         roundup_step=$((roundup_test_count / roundup_workers))
-        echo $roundup_step > ~/lala.txt
 
         for roundup_worker_index in $(seq 1 $roundup_workers)
         do
