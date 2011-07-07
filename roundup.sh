@@ -177,6 +177,52 @@ roundup_summarize() {
     test $failed -eq 0 || exit 2
 }
 
+roundup_run_plans() {
+    for roundup_test_name in $roundup_plan
+    do
+        # Any number of things are possible in `before`, `after`, and the
+        # test.  Drop into an subshell to contain operations that may throw
+        # off roundup; such as `cd`.
+        (
+            # If `before` wasn't redefined, then this is `:`.
+            before
+             # Momentarily turn off auto-fail to give us access to the tests
+            # exit status in `$?` for capturing.
+            set +e
+            (
+                # Set `-xe` before the test in the subshell.  We want the
+                # test to fail fast to allow for more accurate output of
+                # where things went wrong but not in _our_ process because a
+                # failed test should not immediately fail roundup.  Each
+                # tests trace output is saved in temporary storage.
+                set -xe
+                $roundup_test_name
+            ) >"$roundup_tmp/$roundup_test_name" 2>&1
+
+            # We need to capture the exit status before returning the `set
+            # -e` mode.  Returning with `set -e` before we capture the exit
+            # status will result in `$?` being set with `set`'s status
+            # instead.
+            roundup_result=$?
+
+            # It's safe to return to normal operation.
+            set -e
+
+            # If `after` wasn't redefined, then this runs `:`.
+            after
+
+            # This is the final step of a test.  Print its pass/fail signal
+            # and name.
+            if [ "$roundup_result" -ne 0 ]
+            then printf "f"
+            else printf "p"
+            fi
+
+            printf " $roundup_test_name\n"
+        )
+    done
+}
+
 # Sandbox Test Runs
 # -----------------
 
@@ -226,50 +272,7 @@ do
         printf "d %s" "$roundup_desc" | tr "\n" " "
         printf "\n"
 
-        for roundup_test_name in $roundup_plan
-        do
-            # Any number of things are possible in `before`, `after`, and the
-            # test.  Drop into an subshell to contain operations that may throw
-            # off roundup; such as `cd`.
-            (
-                # If `before` wasn't redefined, then this is `:`.
-                before
-
-                # Momentarily turn off auto-fail to give us access to the tests
-                # exit status in `$?` for capturing.
-                set +e
-                (
-                    # Set `-xe` before the test in the subshell.  We want the
-                    # test to fail fast to allow for more accurate output of
-                    # where things went wrong but not in _our_ process because a
-                    # failed test should not immediately fail roundup.  Each
-                    # tests trace output is saved in temporary storage.
-                    set -xe
-                    $roundup_test_name
-                ) >"$roundup_tmp/$roundup_test_name" 2>&1
-
-                # We need to capture the exit status before returning the `set
-                # -e` mode.  Returning with `set -e` before we capture the exit
-                # status will result in `$?` being set with `set`'s status
-                # instead.
-                roundup_result=$?
-
-                # It's safe to return to normal operation.
-                set -e
-
-                # If `after` wasn't redefined, then this runs `:`.
-                after
-
-                # This is the final step of a test.  Print its pass/fail signal
-                # and name.
-                if [ "$roundup_result" -ne 0 ]
-                then printf "f"
-                else printf "p"
-                fi
-
-                printf " $roundup_test_name\n"
-            )
-        done
+	roundup_run_plans
     )
 done |
 
