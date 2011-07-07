@@ -177,7 +177,7 @@ roundup_summarize() {
     test $failed -eq 0 || exit 2
 }
 
-roundup_run_plans() {
+roundup_run_plan() {
     for roundup_test_name in $roundup_plan
     do
         # Any number of things are possible in `before`, `after`, and the
@@ -272,7 +272,7 @@ do
         printf "d %s" "$roundup_desc" | tr "\n" " "
         printf "\n"
 
-	roundup_run_plans
+	roundup_run_plan
     )
 done |
 
