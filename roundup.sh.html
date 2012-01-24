@@ -128,7 +128,7 @@ after failing tests.</p>
 <span class="nv">roundup_tmp</span><span class="o">=</span><span class="s2">&quot;$PWD/.roundup.$$&quot;</span>
 mkdir -p <span class="nv">$roundup_tmp</span>
 
-<span class="nb">trap</span> <span class="s2">&quot;rm -rf \&quot;$roundup_tmp\&quot;&quot;</span> EXIT
+<span class="nb">trap</span> <span class="s2">&quot;rm -rf \&quot;$roundup_tmp\&quot;&quot;</span> EXIT INT
 
 </pre></div></td></tr><tr><td class=docs>
 
