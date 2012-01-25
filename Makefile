@@ -14,16 +14,20 @@ config.mk:
 include config.mk
 
 sourcedir = .
-PROGRAMS = roundup
+PROGRAMS  = roundup
 DISTFILES = config.mk config.sh
+
+INSTALL_PREREQUISITES = man
 
 RONNS = $(wildcard doc/*.ronn)
 ROFFS = $(RONNS:.ronn=)
+MANS  = roundup.1 roundup.5
 
-SCRIPTS = roundup.sh $(wildcard *-test.sh)
+
+SCRIPTS   = roundup $(wildcard *-test.sh)
 CODE_DOCS = $(SCRIPTS:=.html)
-MAN_DOCS = $(RONNS:.ronn=.html)
-DOCS = index.html $(CODE_DOCS) $(MAN_DOCS)
+MAN_DOCS  = $(RONNS:.ronn=.html)
+DOCS      = index.html $(CODE_DOCS) $(MAN_DOCS)
 
 all:: sup build
 
@@ -32,17 +36,12 @@ sup:
 	head -7 < README
 	echo "==========================================================="
 
-build: roundup
+build:
 	echo "roundup built at \`$(sourcedir)/roundup' ..."
 	echo "run \`make install' to install under $(bindir) ..."
 	echo "or, just copy the \`$(sourcedir)/roundup' file where you need it."
 
-roundup: roundup.sh FORCE
-	$(SHELL) -n roundup.sh
-	cp roundup.sh roundup
-	chmod 0755 roundup
-
-test: roundup
+test:
 	@echo This is expected to fail \`make\`.
 	@echo
 	./roundup
@@ -73,13 +72,10 @@ else
 endif
 
 install: $(INSTALL_PREREQUISITES)
-	test -f roundup
-	mkdir -p "$(bindir)"
-	cp roundup "$(bindir)/roundup"
-	chmod 0755 $(bindir)/roundup
-
-install-man: man
-	-for i in {1..9} ; do cp *.$$i $(mandir)/man$$i 2>/dev/null ; done
+	install -d "$(bindir)"
+	install -m 0755 roundup "$(bindir)"
+	install -d "$(mandir)"
+	install -m 0644 $(MANS) "$(mandir)"
 
 .PHONY: pages
 pages : doc
@@ -95,7 +91,7 @@ read: sup doc
 	$(BROWSER) ./roundup.html
 
 clean:
-	$(RM) -rf $(PROGRAMS) $(CODE_DOCS) $(MAN_DOCS) $(ROFFS) pages/
+	$(RM) -rf $(CODE_DOCS) $(MAN_DOCS) $(ROFFS) pages/
 
 distclean: clean
 	$(RM) -rf $(DISTFILES)
@@ -104,4 +100,4 @@ distclean: clean
 
 .SUFFIXES:
 
-.SILENT: build sup roundup test
+.SILENT: build sup test
