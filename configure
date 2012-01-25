@@ -187,8 +187,8 @@ else stdutil xdg-open   XDG_OPEN   xdg-open
 fi
 
 stdutil git        GIT        git
-stdutil ronn       RONN       $GEM_HOME/bin/ronn ronn
-stdutil shocco     SHOCCO     $HOME/bin/shocco
+stdutil ronn       RONN       $GEM_PATH/bin/ronn ronn
+stdutil shocco     SHOCCO     shocco
 
 set -e
 
