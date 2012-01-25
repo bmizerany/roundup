@@ -38,7 +38,7 @@ it_displays_the_title() {
     test "$first_line" "=" "roundup(5)"
 }
 
-it_exists_non_zero() {
+it_exits_non_zero() {
     status=$(set +e ; rup roundup-5 >/dev/null ; echo $?)
     test 2 -eq $status
 }
