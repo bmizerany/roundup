@@ -17,7 +17,7 @@ sourcedir = .
 PROGRAMS = roundup
 DISTFILES = config.mk config.sh
 
-RONNS = $(wildcard *.ronn)
+RONNS = $(wildcard doc/*.ronn)
 ROFFS = $(RONNS:.ronn=)
 
 SCRIPTS = roundup.sh $(wildcard *-test.sh)
