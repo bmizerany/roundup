@@ -30,6 +30,8 @@
 # Usage and Prerequisites
 # -----------------------
 
+[ -n "$ROUNDUP_DEBUG" ] && set -vx
+
 # Exit if any following command exits with a non-zero status.
 set -e
 
