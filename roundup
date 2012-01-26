@@ -205,8 +205,10 @@ do
 
         # Provide default `before` and `after` functions that run only `:`, a
         # no-op. They may or may not be redefined by the test plan.
-        before() { :; }
-        after() { :; }
+        init()    { :; }
+        before()  { :; }
+        after()   { :; }
+        cleanup() { :; }
 
         # Seek test methods and aggregate their names, forming a test plan.
         # This is done before populating the sandbox with tests to avoid odd
@@ -226,6 +228,9 @@ do
         # Output the description signal
         printf "d %s" "$basename: $roundup_desc" | tr "\n" " "
         printf "\n"
+
+        # Init function which will run once, before everything else
+        init
 
         for roundup_test_name in $roundup_plan
         do
@@ -271,6 +276,7 @@ do
                 printf " $roundup_test_name\n"
             )
         done
+        cleanup
     )
 done |
 
