@@ -1,6 +1,6 @@
 Tarballs available at: <http://github.com/bmizerany/roundup/downloads>
 
-    $ curl -L http://github.com/bmizerany/roundup/downloads/v0.0.5 | tar xvzf -
+    $ curl -L https://github.com/bmizerany/roundup/tarball/v0.0.5 | tar xvzf -
     $ cd bmizerany-roundup
     $ ./configure # see --help for options
     $ make
