@@ -100,3 +100,30 @@ it_outputs_the_return_code_7() {
 xit_ignores_this() {
     false
 }
+
+# Roundup will check assume statements. It is possible to pass another
+# testcase to assume like it_... or you can pass another shell test. 
+it_passes_with_fulfilled_assumptions() {
+    assume it_passes
+    ! assume it_works_wonders
+    assume ! test -f non_existing_file
+}
+
+# Roundup's behaviour is not changed if only fulfilled assumptions are
+# used in a testcase.
+it_fails_with_assumptions() {
+    ! assume it_works_wonders
+    false
+}
+
+# Roundup will skip testcases where the assumptions are partially not
+# fulfilled.
+it_is_skipped_without_assumptions() {
+    assume it_works_wonders
+}
+
+# Roundup will skip testcases where the shell test is partially not
+# fulfilled.
+it_is_skipped_with_failing_test() {
+    assume test -z "bla"
+}
