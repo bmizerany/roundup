@@ -231,7 +231,12 @@ do
             # Any number of things are possible in `before`, `after`, and the
             # test.  Drop into an subshell to contain operations that may throw
             # off roundup; such as `cd`.
+            # Turn off auto-fail for passing the roundup_result out of the subshell.
+            set +e
             (
+                # ... and enable auto-fail again
+                set -e
+
                 # If `before` wasn't redefined, then this is `:`.
                 before
 
@@ -260,15 +265,22 @@ do
                 # If `after` wasn't redefined, then this runs `:`.
                 after
 
-                # This is the final step of a test.  Print its pass/fail signal
-                # and name.
-                if [ "$roundup_result" -ne 0 ]
-                then printf "f"
-                else printf "p"
-                fi
-
-                printf " $roundup_test_name\n"
+                # return the testcase return code in order to get it out
+                # of the subshell
+                exit "$roundup_result"
             )
+            roundup_result=$?
+
+            # Turn error handling on again after we got the RC of the subshell
+            set -e
+
+            # This is the final step of a test.  Print its pass/fail signal
+            # and name.
+            if [ "$roundup_result" -ne 0 ]
+            then printf "f"
+            else printf "p"
+            fi
+            printf " $roundup_test_name\n"
         done
     )
 done |
