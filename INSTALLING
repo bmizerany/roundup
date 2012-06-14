@@ -1,7 +1,7 @@
 Tarballs available at: <http://github.com/bmizerany/roundup/downloads>
 
     $ curl -L https://github.com/bmizerany/roundup/tarball/v0.0.5 | tar xvzf -
-    $ cd bmizerany-roundup
+    $ cd bmizerany-roundup-<sha>
     $ ./configure # see --help for options
     $ make
     $ make install # you may need sudo
