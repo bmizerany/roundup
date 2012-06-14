@@ -6,6 +6,10 @@ Tarballs available at: <http://github.com/bmizerany/roundup/downloads>
     $ make
     $ make install # you may need sudo
 
+Homebrew:
+
+    $ brew install roundup
+
 Hacking? Clone the git repository and put roundup on your PATH:
 
     $ git clone git://github.com/bmizerany/roundup.git
