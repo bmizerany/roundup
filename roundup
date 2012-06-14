@@ -30,6 +30,8 @@
 # Usage and Prerequisites
 # -----------------------
 
+[ -n "$ROUNDUP_DEBUG" ] && set -vx
+
 # Exit if any following command exits with a non-zero status.
 set -e
 
@@ -144,29 +146,28 @@ roundup_summarize() {
 
     while read status name
     do
+        printed_name=$(echo $name | sed -e "s/_/ /g")
         case $status in
         p)
             ntests=$(expr $ntests + 1)
             passed=$(expr $passed + 1)
-            printf "  %-48s " "$name:"
-            printf "$grn[PASS]$clr\n"
+            echo "  $grn$printed_name$clr"
             ;;
         f)
             ntests=$(expr $ntests + 1)
             failed=$(expr $failed + 1)
-            printf "  %-48s " "$name:"
-            printf "$red[FAIL]$clr\n"
+            echo "  $red$printed_name$clr"
             roundup_trace < "$roundup_tmp/$name"
             ;;
         d)
-            printf "%s\n" "$name"
+            printf "%s\n" "$printed_name"
             ;;
         esac
     done
     # __Test Summary__
     #
     # Display the summary now that all tests are finished.
-    yes = | head -n 57 | tr -d '\n'
+    yes = | head -n $cols | tr -d '\n'
     printf "\n"
     printf "Tests:  %3d | " $ntests
     printf "Passed: %3d | " $passed
@@ -190,7 +191,7 @@ do
     (
         # Consider the description to be the `basename` of the plan minus the
         # tailing -test.sh.
-        roundup_desc=$(basename "$roundup_p" -test.sh)
+        basename=$(basename "$roundup_p" -test.sh)
 
         # Define functions for
         # [roundup(5)][r5]
@@ -204,8 +205,10 @@ do
 
         # Provide default `before` and `after` functions that run only `:`, a
         # no-op. They may or may not be redefined by the test plan.
-        before() { :; }
-        after() { :; }
+        init()    { :; }
+        before()  { :; }
+        after()   { :; }
+        cleanup() { :; }
 
         # Seek test methods and aggregate their names, forming a test plan.
         # This is done before populating the sandbox with tests to avoid odd
@@ -223,8 +226,11 @@ do
         . ./$roundup_p
 
         # Output the description signal
-        printf "d %s" "$roundup_desc" | tr "\n" " "
+        printf "d %s" "$basename: $roundup_desc" | tr "\n" " "
         printf "\n"
+
+        # Init function which will run once, before everything else
+        init
 
         for roundup_test_name in $roundup_plan
         do
@@ -270,6 +276,7 @@ do
                 printf " $roundup_test_name\n"
             )
         done
+        cleanup
     )
 done |
 
