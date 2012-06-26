@@ -243,8 +243,18 @@ do
                 set -E
                 trap 'rc=$?; set +x; set -o | grep "errexit.*on" >/dev/null && exit $rc' ERR
 
-                # If `before` wasn't redefined, then this is `:`.
-                before
+                # Output `before` trace to temporary file. If `before` runs cleanly,
+                # the trace will be overwritten by the actual test case below.
+                {
+                    # redirect tracing output of `before` into file.
+                    {
+                        set -x
+                        # If `before` wasn't redefined, then this is `:`.
+                        before
+                    } &>"$roundup_tmp/$roundup_test_name"
+                    # disable tracing again. Its trace output goes to /dev/null.
+                    set +x
+                } &>/dev/null
 
                 # Momentarily turn off auto-fail to give us access to the tests
                 # exit status in `$?` for capturing.
