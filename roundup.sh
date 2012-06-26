@@ -249,7 +249,11 @@ do
                 trap 'rc=$?; set +x; set -o | grep "errexit.*on" >/dev/null && exit $rc' ERR
 
                 # If `before` wasn't redefined, then this is `:`.
+                exec 3>&1 4>&2 1>"$roundup_tmp/$roundup_test_name" 2>&1
+                set -xe
                 before
+                set +x
+                exec 1>&3 2>&4
 
                 # Momentarily turn off auto-fail to give us access to the tests
                 # exit status in `$?` for capturing.
