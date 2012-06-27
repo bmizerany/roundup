@@ -85,6 +85,15 @@ it_runs_after_if_a_test_fails_part_2() {
     test "!" -f foo.txt
 }
 
+# Output the correct return code of a failing command of a testcase.
+it_outputs_the_return_code_7() {
+    function f() { return 42; }
+    x=$(echo asdf)
+
+    function g() { return 7; }
+    g
+}
+
 # Roundup will ignore tests starting with `x`.  Ignored tests are still
 # enumerated in the plans output marked with `[I]`.  If roundup does not ignore
 # this, result in failure.
