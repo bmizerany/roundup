@@ -95,6 +95,11 @@ roundup_trace() {
     # Delete the first two lines that represent roundups execution of the
     # test function.  They are useless to the user.
     sed '1d'                                   |
+    # Delete the last line which is the "set +x" of the error trap
+    sed '$d'                                   |
+    # Replace the rc=$? of the error trap with an verbose string appended
+    # to the failing command trace line.
+    sed '$s/.*rc=/exit code /'                 |
     # Trim the two left most `+` signs.  They represent the depth at which
     # roundup executed the function.  They also, are useless and confusing.
     sed 's/^++//'                              |
@@ -244,6 +249,15 @@ do
                     # disable tracing again. Its trace output goes to /dev/null.
                     set +x
                 } &>/dev/null
+
+                # exit subshell with return code of last failing command. This
+                # is needed to see the return code 253 on failed assumptions.
+                # But, only do this if the error handling is activated.
+                set -E
+                trap 'rc=$?; set +x; set -o | grep "errexit.*on" >/dev/null && exit $rc' ERR
+
+                # If `before` wasn't redefined, then this is `:`.
+                before
 
                 # Momentarily turn off auto-fail to give us access to the tests
                 # exit status in `$?` for capturing.
