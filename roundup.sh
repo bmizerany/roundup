@@ -95,6 +95,11 @@ roundup_trace() {
     # Delete the first two lines that represent roundups execution of the
     # test function.  They are useless to the user.
     sed '1d'                                   |
+    # Delete the last line which is the "set +x" of the error trap
+    sed '$d'                                   |
+    # Replace the rc=$? of the error trap with an verbose string appended
+    # to the failing command trace line.
+    sed 'N;$s/\n.*rc=/ => exit code /;P;D'     |
     # Trim the two left most `+` signs.  They represent the depth at which
     # roundup executed the function.  They also, are useless and confusing.
     sed 's/^++//'                              |
@@ -231,7 +236,18 @@ do
             # Any number of things are possible in `before`, `after`, and the
             # test.  Drop into an subshell to contain operations that may throw
             # off roundup; such as `cd`.
+            # Turn off auto-fail for passing the roundup_result out of the subshell.
+            set +e
             (
+                # ... and enable auto-fail again
+                set -e
+
+                # exit subshell with return code of last failing command. This
+                # is needed to see the return code 253 on failed assumptions.
+                # But, only do this if the error handling is activated.
+                set -o errtrace
+                trap 'rc=$?; set +x; set -o | grep "errexit.*on" >/dev/null && exit $rc' ERR
+
                 # If `before` wasn't redefined, then this is `:`.
                 before
 
@@ -260,15 +276,22 @@ do
                 # If `after` wasn't redefined, then this runs `:`.
                 after
 
-                # This is the final step of a test.  Print its pass/fail signal
-                # and name.
-                if [ "$roundup_result" -ne 0 ]
-                then printf "f"
-                else printf "p"
-                fi
-
-                printf " $roundup_test_name\n"
+                # return the testcase return code in order to get it out
+                # of the subshell
+                exit "$roundup_result"
             )
+            roundup_result=$?
+
+            # Turn error handling on again after we got the RC of the subshell
+            set -e
+
+            # This is the final step of a test.  Print its pass/fail signal
+            # and name.
+            if [ "$roundup_result" -ne 0 ]
+            then printf "f"
+            else printf "p"
+            fi
+            printf " $roundup_test_name\n"
         done
     )
 done |
