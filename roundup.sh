@@ -260,6 +260,14 @@ do
                 # exit status in `$?` for capturing.
                 set +e
                 (
+                    # Define a helper to log stdout to the file stdout and stderr to the
+                    # file stderr. This can be used like this:
+                    #   capture ls asdf
+                    #   grep "error" stderr
+                    capture () {
+                        { "$@" 2>&1 1>&3 | tee -- stderr 1>&2; } 3>&1 | tee -- stdout
+                    }
+
                     # Set `-xe` before the test in the subshell.  We want the
                     # test to fail fast to allow for more accurate output of
                     # where things went wrong but not in _our_ process because a
