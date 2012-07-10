@@ -95,6 +95,11 @@ roundup_trace() {
     # Delete the first two lines that represent roundups execution of the
     # test function.  They are useless to the user.
     sed '1d'                                   |
+    # Delete the last line which is the "set +x" of the error trap
+    sed '$d'                                   |
+    # Replace the rc=$? of the error trap with an verbose string appended
+    # to the failing command trace line.
+    sed '$s/.*rc=/exit code /'                 |
     # Trim the two left most `+` signs.  They represent the depth at which
     # roundup executed the function.  They also, are useless and confusing.
     sed 's/^++//'                              |
@@ -129,15 +134,17 @@ roundup_summarize() {
         red=$(printf "\033[31m")
         grn=$(printf "\033[32m")
         mag=$(printf "\033[35m")
+        ylw=$(printf "\033[33m")
         clr=$(printf "\033[m")
         cols=$(tput cols)
     fi
 
     # Make these available to `roundup_trace`.
-    export red grn mag clr
+    export red grn mag clr ylw
 
     ntests=0
     passed=0
+    skipped=0
     failed=0
 
     : ${cols:=10}
@@ -150,6 +157,12 @@ roundup_summarize() {
             passed=$(expr $passed + 1)
             printf "  %-48s " "$name:"
             printf "$grn[PASS]$clr\n"
+            ;;
+        s)
+            ntests=$(expr $ntests + 1)
+            skipped=$(expr $skipped + 1)
+            printf "  %-48s " "$name:"
+            printf "$ylw[SKIP]$clr\n"
             ;;
         f)
             ntests=$(expr $ntests + 1)
@@ -168,9 +181,10 @@ roundup_summarize() {
     # Display the summary now that all tests are finished.
     yes = | head -n 57 | tr -d '\n'
     printf "\n"
-    printf "Tests:  %3d | " $ntests
-    printf "Passed: %3d | " $passed
-    printf "Failed: %3d"    $failed
+    printf "Tests:   %3d | " $ntests
+    printf "Passed:  %3d | " $passed
+    printf "Skipped: %3d | " $skipped
+    printf "Failed:  %3d"    $failed
     printf "\n"
 
     # Exit with an error if any tests failed
@@ -200,6 +214,25 @@ do
         # TODO: reimplement this.
         describe() {
             roundup_desc="$*"
+        }
+
+        # Helper to express an assumption for a given testcase. Example:
+        # it_runs_fine() {
+        #   assume it_builds_fine
+        #   assume test -f foo
+        #   ./binary
+        # }
+        assume() {
+            if (echo "$1" | grep "^it_.*" >/dev/null)
+            then if [ "$(eval echo \${passed_$1})" == 1 ]
+                 then return 0
+                 else return 253
+                 fi
+            else if eval "$@"
+                 then return 0
+                 else return 253
+                 fi
+            fi
         }
 
         # Provide default `before` and `after` functions that run only `:`, a
@@ -232,13 +265,37 @@ do
             # test.  Drop into an subshell to contain operations that may throw
             # off roundup; such as `cd`.
             (
-                # If `before` wasn't redefined, then this is `:`.
-                before
+                # exit subshell with return code of last failing command. This
+                # is needed to see the return code 253 on failed assumptions.
+                # But, only do this if the error handling is activated.
+                set -E
+                trap 'rc=$?; set +x; set -o | grep "errexit.*on" >/dev/null && exit $rc' ERR
+
+                # Output `before` trace to temporary file. If `before` runs cleanly,
+                # the trace will be overwritten by the actual test case below.
+                {
+                    # redirect tracing output of `before` into file.
+                    {
+                        set -x
+                        # If `before` wasn't redefined, then this is `:`.
+                        before
+                    } &>"$roundup_tmp/$roundup_test_name"
+                    # disable tracing again. Its trace output goes to /dev/null.
+                    set +x
+                } &>/dev/null
 
                 # Momentarily turn off auto-fail to give us access to the tests
                 # exit status in `$?` for capturing.
                 set +e
                 (
+                    # Define a helper to log stdout to the file stdout and stderr to the
+                    # file stderr. This can be used like this:
+                    #   capture ls asdf
+                    #   grep "error" stderr
+                    capture () {
+                        { "$@" 2>&1 1>&3 | tee -- stderr 1>&2; } 3>&1 | tee -- stdout
+                    }
+
                     # Set `-xe` before the test in the subshell.  We want the
                     # test to fail fast to allow for more accurate output of
                     # where things went wrong but not in _our_ process because a
@@ -262,9 +319,11 @@ do
 
                 # This is the final step of a test.  Print its pass/fail signal
                 # and name.
-                if [ "$roundup_result" -ne 0 ]
-                then printf "f"
-                else printf "p"
+                if [ "$roundup_result" == 0 ]
+                then printf "p"; eval export passed_$roundup_test_name=1
+                elif [ "$roundup_result" == 253 ]
+                then printf "s"
+                else printf "f"
                 fi
 
                 printf " $roundup_test_name\n"

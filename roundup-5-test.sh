@@ -85,9 +85,45 @@ it_runs_after_if_a_test_fails_part_2() {
     test "!" -f foo.txt
 }
 
+# Output the correct return code of a failing command of a testcase.
+it_outputs_the_return_code_7() {
+    function f() { return 42; }
+    x=$(echo asdf)
+
+    function g() { return 7; }
+    g
+}
+
 # Roundup will ignore tests starting with `x`.  Ignored tests are still
 # enumerated in the plans output marked with `[I]`.  If roundup does not ignore
 # this, result in failure.
 xit_ignores_this() {
     false
+}
+
+# Roundup will check assume statements. It is possible to pass another
+# testcase to assume like it_... or you can pass another shell test. 
+it_passes_with_fulfilled_assumptions() {
+    assume it_passes
+    ! assume it_works_wonders
+    assume ! test -f non_existing_file
+}
+
+# Roundup's behaviour is not changed if only fulfilled assumptions are
+# used in a testcase.
+it_fails_with_assumptions() {
+    ! assume it_works_wonders
+    false
+}
+
+# Roundup will skip testcases where the assumptions are partially not
+# fulfilled.
+it_is_skipped_without_assumptions() {
+    assume it_works_wonders
+}
+
+# Roundup will skip testcases where the shell test is partially not
+# fulfilled.
+it_is_skipped_with_failing_test() {
+    assume test -z "bla"
 }
