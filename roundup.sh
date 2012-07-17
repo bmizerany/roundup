@@ -106,8 +106,14 @@ roundup_trace() {
     # Indent the output by 4 spaces to align under the test name in the
     # summary.
     sed 's/^/    /'                            |
-    # Highlight the last line to bring notice to where the error occurred.
-    sed "\$s/\(.*\)/$mag\1$clr/"
+    # Highlight the last line in front of the exit code to bring notice to
+    # where the error occurred.
+    #
+    # The sed magic puts every line into the hold buffer first, then
+    # substitutes in the previous hold buffer content, prints that and starts
+    # with the next cycle. At the end the last line (in the hold buffer)
+    # is printed without substitution.
+    sed -n "x;1!{ \$s/\(.*\)/$mag\1$clr/; };1!p;\$x;\$p"
 }
 
 # __Other helpers__
