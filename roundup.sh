@@ -95,14 +95,25 @@ roundup_trace() {
     # Delete the first two lines that represent roundups execution of the
     # test function.  They are useless to the user.
     sed '1d'                                   |
+    # Delete the last line which is the "set +x" of the error trap
+    sed '$d'                                   |
+    # Replace the rc=$? of the error trap with an verbose string appended
+    # to the failing command trace line.
+    sed '$s/.*rc=/exit code /'                 |
     # Trim the two left most `+` signs.  They represent the depth at which
     # roundup executed the function.  They also, are useless and confusing.
     sed 's/^++//'                              |
     # Indent the output by 4 spaces to align under the test name in the
     # summary.
     sed 's/^/    /'                            |
-    # Highlight the last line to bring notice to where the error occurred.
-    sed "\$s/\(.*\)/$mag\1$clr/"
+    # Highlight the last line in front of the exit code to bring notice to
+    # where the error occurred.
+    #
+    # The sed magic puts every line into the hold buffer first, then
+    # substitutes in the previous hold buffer content, prints that and starts
+    # with the next cycle. At the end the last line (in the hold buffer)
+    # is printed without substitution.
+    sed -n "x;1!{ \$s/\(.*\)/$mag\1$clr/; };1!p;\$x;\$p"
 }
 
 # __Other helpers__
@@ -232,6 +243,12 @@ do
             # test.  Drop into an subshell to contain operations that may throw
             # off roundup; such as `cd`.
             (
+                # exit subshell with return code of last failing command. This
+                # is needed to see the return code 253 on failed assumptions.
+                # But, only do this if the error handling is activated.
+                set -E
+                trap 'rc=$?; set +x; set -o | grep "errexit.*on" >/dev/null && exit $rc' ERR
+
                 # If `before` wasn't redefined, then this is `:`.
                 before
 
