@@ -242,28 +242,28 @@ do
             # Any number of things are possible in `before`, `after`, and the
             # test.  Drop into an subshell to contain operations that may throw
             # off roundup; such as `cd`.
+            # Momentarily turn off auto-fail to give us access to the tests
+            # exit status in `$?` for capturing.
+            set +e
             (
-                # Output `before` trace to temporary file. If `before` runs cleanly,
-                # the trace will be overwritten by the actual test case below.
-                {
-                    # redirect tracing output of `before` into file.
-                    {
-                        set -x
-                        # If `before` wasn't redefined, then this is `:`.
-                        before
-                    } &>"$roundup_tmp/$roundup_test_name"
-                    # disable tracing again. Its trace output goes to /dev/null.
-                    set +x
-                } &>/dev/null
-
                 # exit subshell with return code of last failing command. This
                 # is needed to see the return code 253 on failed assumptions.
                 # But, only do this if the error handling is activated.
                 set -E
                 trap 'rc=$?; set +x; set -o | grep "errexit.*on" >/dev/null && exit $rc' ERR
 
-                # If `before` wasn't redefined, then this is `:`.
-                before
+                # Output `before` trace to temporary file. If `before` runs cleanly,
+                # the trace will be overwritten by the actual test case below.
+                {
+                    # redirect tracing output of `before` into file.
+                    {
+                        set -xe
+                        # If `before` wasn't redefined, then this is `:`.
+                        before
+                    } &>"$roundup_tmp/$roundup_test_name"
+                    # disable tracing again. Its trace output goes to /dev/null.
+                    set +x
+                } &>/dev/null
 
                 # Momentarily turn off auto-fail to give us access to the tests
                 # exit status in `$?` for capturing.
@@ -284,21 +284,27 @@ do
                 # instead.
                 roundup_result=$?
 
-                # It's safe to return to normal operation.
-                set -e
-
                 # If `after` wasn't redefined, then this runs `:`.
                 after
 
-                # This is the final step of a test.  Print its pass/fail signal
-                # and name.
-                if [ "$roundup_result" -ne 0 ]
-                then printf "f"
-                else printf "p"
-                fi
-
-                printf " $roundup_test_name\n"
+                # Pass roundup return code outside of the subshell
+                exit $roundup_result
             )
+
+            # copy roundup_result from subshell above
+            roundup_result=$?
+
+            # It's safe to return to normal operation.
+            set -e
+
+            # This is the final step of a test.  Print its pass/fail signal
+            # and name.
+            if [ "$roundup_result" -ne 0 ]
+            then printf "f"
+            else printf "p"
+            fi
+
+            printf " $roundup_test_name\n"
         done
     )
 done |
