@@ -77,9 +77,6 @@ test_feature() {
     $SHELL -c "$1" >/dev/null 2>&1 && echo true || echo false
 }
 
-    $SHELL -c "$1" >/dev/null 2>&1 && echo true || echo false
-}
-
 # Detect if we support set -E and trap ERR
 USE_TRAP_ERR=$(test_feature 'set -E')
 USE_SET_CAP_E=$(test_feature 'trap ":" ERR')
