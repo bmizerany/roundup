@@ -185,7 +185,7 @@ roundup_summarize() {
     # __Test Summary__
     #
     # Display the summary now that all tests are finished.
-    yes = | head -n 57 | tr -d '\n'
+    yes = | head -n 57 | awk '{ printf "%s", $0 }'
     printf "\n"
     printf "Tests:  %3d | " $ntests
     printf "Passed: %3d | " $passed
@@ -242,7 +242,7 @@ do
         . ./$roundup_p
 
         # Output the description signal
-        printf "d %s" "$roundup_desc" | tr "\n" " "
+        printf "d %s" "$roundup_desc" | awk '{ printf "%s ", $0 }'
         printf "\n"
 
         for roundup_test_name in $roundup_plan
