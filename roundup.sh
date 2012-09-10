@@ -141,7 +141,15 @@ roundup_summarize() {
         grn=$(printf "\033[32m")
         mag=$(printf "\033[35m")
         clr=$(printf "\033[m")
-        cols=$(tput cols)
+        if which tput >/dev/null 2>&1
+        then
+            cols=$(tput cols)
+        elif [ -n "$COLS" ]
+        then
+            cols=$COLS
+        else
+            cols=40
+        fi
     fi
 
     # Make these available to `roundup_trace`.
