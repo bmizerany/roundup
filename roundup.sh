@@ -72,6 +72,18 @@ do
     esac
 done
 
+# Test to see if a feature is available
+test_feature() {
+    $SHELL -c "$1" >/dev/null 2>&1 && echo true || echo false
+}
+
+    $SHELL -c "$1" >/dev/null 2>&1 && echo true || echo false
+}
+
+# Detect if we support set -E and trap ERR
+USE_TRAP_ERR=$(test_feature 'set -E')
+USE_SET_CAP_E=$(test_feature 'trap ":" ERR')
+
 # Consider all scripts with names matching `*-test.sh` the plans to run unless
 # otherwise specified as arguments.
 if [ "$#" -gt "0" ]
@@ -96,7 +108,7 @@ roundup_trace() {
     # test function.  They are useless to the user.
     sed '1d'                                   |
     # Delete the last line which is the "set +x" of the error trap
-    sed '$d'                                   |
+    ( $USE_TRAP_ERR && sed '$d' || cat )       |
     # Replace the rc=$? of the error trap with an verbose string appended
     # to the failing command trace line.
     sed '$s/.*rc=/exit code /'                 |
@@ -267,8 +279,8 @@ do
                 # exit subshell with return code of last failing command. This
                 # is needed to see the return code 253 on failed assumptions.
                 # But, only do this if the error handling is activated.
-                set -E
-                trap 'rc=$?; set +x; set -o | grep "errexit.*on" >/dev/null && exit $rc' ERR
+                $USE_SET_CAP_E && set -E
+                $USE_TRAP_ERR && trap 'rc=$?; set +x; set -o | grep "errexit.*on" >/dev/null && exit $rc' ERR
 
                 # If `before` wasn't redefined, then this is `:`.
                 before
