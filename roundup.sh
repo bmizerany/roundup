@@ -86,7 +86,7 @@ fi
 # Create a temporary storage place for test output to be retrieved for display
 # after failing tests.
 roundup_tmp="$PWD/.roundup.$$"
-mkdir -p $roundup_tmp
+mkdir -p "$roundup_tmp"
 
 trap "rm -rf \"$roundup_tmp\"" EXIT INT
 
