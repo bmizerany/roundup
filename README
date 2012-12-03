@@ -1,7 +1,7 @@
 roundup - kills shell eating bugs and weeds
 
 roundup(1) is a unit testing tool for running roundup(5) test plans which are
-written in any POSIX shell.  Each test in a plan is run in it's own isolated
+written in any POSIX shell.  Each test in a plan is run in its own isolated
 sandbox.  A test can pass, be ignored, or fail.  Failed tests output their `set
 -x` trace.
 
