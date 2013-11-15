@@ -25,7 +25,7 @@
 # ------------
 
 # Prevent carpel tunnel
-rup() { /bin/sh $0 $1-test.sh ; }
+rup() { $SHELL $0 $1-test.sh ; }
 
 # The Plan
 # --------
