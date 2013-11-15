@@ -167,7 +167,11 @@ echo "building for ${UNAME:-unknown}" \
 
 looking "for /bin/sh"
 SH=$(have /bin/sh) && {
-    if expr "$("$SH" --version 2>/dev/null)" : '.*bash' >/dev/null
+    if test $(readlink /bin/sh) = dash
+    then
+        SH=/bin/bash
+        found '' "oh ick, it looks like dash. Setting SH to $SH"
+    elif expr "$("$SH" --version 2>/dev/null)" : '.*bash' >/dev/null
     then
         found '' "oh ick, it looks like bash"
     else
