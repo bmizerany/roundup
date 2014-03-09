@@ -139,6 +139,7 @@ roundup_summarize() {
     then
         red=$(printf "\033[31m")
         grn=$(printf "\033[32m")
+        yel=$(printf "\033[33m")
         mag=$(printf "\033[35m")
         clr=$(printf "\033[m")
         cols=$(tput cols)
@@ -150,6 +151,7 @@ roundup_summarize() {
     ntests=0
     passed=0
     failed=0
+    later=0
 
     : ${cols:=10}
 
@@ -169,6 +171,12 @@ roundup_summarize() {
             printf "$red[FAIL]$clr\n"
             roundup_trace < "$roundup_tmp/$name"
             ;;
+        l)
+            ntests=$(expr $ntests + 1)
+            later=$(expr $later + 1)
+            printf "  %-48s " "$name:"
+            printf "$yel[LATER]$clr\n"
+            ;;
         d)
             printf "%s\n" "$name"
             ;;
@@ -181,7 +189,8 @@ roundup_summarize() {
     printf "\n"
     printf "Tests:  %3d | " $ntests
     printf "Passed: %3d | " $passed
-    printf "Failed: %3d"    $failed
+    printf "Failed: %3d | " $failed
+    printf "Later:  %3d"    $later
     printf "\n"
 
     # Exit with an error if any tests failed
@@ -217,6 +226,7 @@ do
         # no-op. They may or may not be redefined by the test plan.
         before() { :; }
         after() { :; }
+        later() { echo $* > "$roundup_tmp/$roundup_test_name.later"; exit 1; }
 
         # Seek test methods and aggregate their names, forming a test plan.
         # This is done before populating the sandbox with tests to avoid odd
@@ -290,11 +300,12 @@ do
                 # If `after` wasn't redefined, then this runs `:`.
                 after
 
-                # This is the final step of a test.  Print its pass/fail signal
+                # This is the final step of a test.  Print its pass/later/fail signal
                 # and name.
-                if [ "$roundup_result" -ne 0 ]
-                then printf "f"
-                else printf "p"
+                if [ "$roundup_result" -eq 0 ]
+                then printf "p"
+                elif [ -e "$roundup_tmp/$roundup_test_name.later" ]; then printf "l"
+                else printf "f"
                 fi
 
                 printf " $roundup_test_name\n"
