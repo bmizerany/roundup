@@ -153,21 +153,22 @@ roundup_summarize() {
 
     : ${cols:=10}
 
-    while read status name
+    while read status name logfn
     do
         case $status in
         p)
             ntests=$(expr $ntests + 1)
             passed=$(expr $passed + 1)
             printf "  %-48s " "$name:"
-            printf "$grn[PASS]$clr\n"
+            printf "$grn[PASS]$clr $logfn\n"
             ;;
         f)
             ntests=$(expr $ntests + 1)
             failed=$(expr $failed + 1)
             printf "  %-48s " "$name:"
-            printf "$red[FAIL]$clr\n"
-            roundup_trace < "$roundup_tmp/$name"
+            printf "$red[FAIL]$clr $logfn\n"
+
+            test -n "$logfn" -a -f "$logfn" || roundup_trace < "$roundup_tmp/$name"
             ;;
         d)
             printf "%s\n" "$name"
@@ -290,6 +291,13 @@ do
                 # If `after` wasn't redefined, then this runs `:`.
                 after
 
+                # Preserve test outputs for every test
+                logfn=""
+                test -d logs/ && {
+                    logfn="logs/$roundup_p-${roundup_test_name}.log";
+                    cp "$roundup_tmp/$roundup_test_name" "$logfn"
+                }
+
                 # This is the final step of a test.  Print its pass/fail signal
                 # and name.
                 if [ "$roundup_result" -ne 0 ]
@@ -297,7 +305,7 @@ do
                 else printf "p"
                 fi
 
-                printf " $roundup_test_name\n"
+                printf " $roundup_test_name $logfn\n"
             )
         done
     )
