@@ -18,6 +18,12 @@ roundup(5).  If all tests pass, the shell is roundup-ready.
   * `--version`:
     Display version and exit.
 
+  * `--exclude pattern` or `-e pattern`:
+    Exclude tests cases with name matching `pattern`. Eg. roundup --exclude *runs_after*
+
+  * `--include pattern` or `-i pattern`:
+    Execute tests cases only with name matching `pattern`. Eg. roundup --include *runs_after*
+
 ## BEHAVIOUR
 
 `roundup` run with no <plan>(s) specified will attempt to run all files matching

@@ -41,7 +41,7 @@ export ROUNDUP_VERSION
 # Usage is defined in a specific comment syntax. It is `grep`ed out of this file
 # when needed (i.e. The Tomayko Method).  See
 # [shocco](http://rtomayko.heroku.com/shocco) for more detail.
-#/ usage: roundup [--help|-h] [--version|-v] [plan ...]
+#/ usage: roundup [--help|-h] [--version|-v] [--include|-i pattern] [--exclude|-e pattern] [plan ...]
 
 roundup_usage() {
     grep '^#/' <"$0" | cut -c4-
@@ -60,6 +60,16 @@ do
             ;;
         --color)
             color=always
+            shift
+            ;;
+        --include|-i)
+            shift
+            include=$1
+            shift
+            ;;
+        --exclude|-e)
+            shift
+            exclude=$1
             shift
             ;;
         -)
@@ -222,11 +232,20 @@ do
         # This is done before populating the sandbox with tests to avoid odd
         # conflicts.
 
+        # Filter test cases for exclude and include patterns
+        filter_tests() {
+          while read test; do
+            case "$test" in $exclude) break ;; esac
+            case "$test" in ${include:-*}) echo "$test" ;; esac
+          done
+        }
+
         # TODO:  I want to do this with sed only.  Please send a patch if you
         # know a cleaner way.
         roundup_plan=$(
             grep "^it_.*()" $roundup_p           |
-            sed "s/\(it_[a-zA-Z0-9_]*\).*$/\1/g"
+            sed "s/\(it_[a-zA-Z0-9_]*\).*$/\1/g" |
+            filter_tests
         )
 
         # We have the test plan and are in our sandbox with [roundup(5)][r5]
