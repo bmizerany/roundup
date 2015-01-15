@@ -25,7 +25,7 @@ $PWD/*-test.sh
 
 ## EXIT STATUS
 
-**roundup** exists with 0 on success, > 0 otherwise.
+**roundup** exits with 0 on success, > 0 otherwise.
 
 ## BUGS
 
