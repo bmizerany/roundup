@@ -39,7 +39,7 @@ build: roundup
 
 roundup: roundup.sh FORCE
 	$(SHELL) -n roundup.sh
-	cp roundup.sh roundup
+	sed "s~#!/bin/sh~#!${SHELL}~" roundup.sh > roundup
 	chmod 0755 roundup
 
 test: roundup
