@@ -1,0 +1,7 @@
+language: bash
+install: ./configure --development && make
+script:
+  # Need to prefix with bash until https://github.com/bmizerany/roundup/issues/25 is fixed
+  - ./roundup --help
+  - ./roundup -v
+  - ./roundup roundup-1-test.sh edge-test.sh
