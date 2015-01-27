@@ -72,6 +72,15 @@ do
     esac
 done
 
+# Test to see if a feature is available
+test_feature() {
+    $SHELL -c "$1" >/dev/null 2>&1 && echo true || echo false
+}
+
+# Detect if we support set -E and trap ERR
+USE_TRAP_ERR=$(test_feature 'set -E')
+USE_SET_CAP_E=$(test_feature 'trap ":" ERR')
+
 # Consider all scripts with names matching `*-test.sh` the plans to run unless
 # otherwise specified as arguments.
 if [ "$#" -gt "0" ]
@@ -96,7 +105,7 @@ roundup_trace() {
     # test function.  They are useless to the user.
     sed '1d'                                   |
     # Delete the last line which is the "set +x" of the error trap
-    sed '$d'                                   |
+    ( $USE_TRAP_ERR && sed '$d' || cat )       |
     # Replace the rc=$? of the error trap with an verbose string appended
     # to the failing command trace line.
     sed '$s/.*rc=/exit code /'                 |
@@ -141,7 +150,15 @@ roundup_summarize() {
         grn=$(printf "\033[32m")
         mag=$(printf "\033[35m")
         clr=$(printf "\033[m")
-        cols=$(tput cols)
+        if which tput >/dev/null 2>&1
+        then
+            cols=$(tput cols)
+        elif [ -n "$COLS" ]
+        then
+            cols=$COLS
+        else
+            cols=40
+        fi
     fi
 
     # Make these available to `roundup_trace`.
@@ -177,7 +194,7 @@ roundup_summarize() {
     # __Test Summary__
     #
     # Display the summary now that all tests are finished.
-    yes = | head -n 57 | tr -d '\n'
+    yes = | head -n 57 | awk '{ printf "%s", $0 }'
     printf "\n"
     printf "Tests:  %3d | " $ntests
     printf "Passed: %3d | " $passed
@@ -222,11 +239,8 @@ do
         # This is done before populating the sandbox with tests to avoid odd
         # conflicts.
 
-        # TODO:  I want to do this with sed only.  Please send a patch if you
-        # know a cleaner way.
         roundup_plan=$(
-            grep "^it_.*()" $roundup_p           |
-            sed "s/\(it_[a-zA-Z0-9_]*\).*$/\1/g"
+            sed -e "/^it_[a-zA-Z0-9_]*[ 	]*([ 	]*)/!{d}" -e "s/\(it_[a-zA-Z0-9_]*\).*$/\1/g" $roundup_p
         )
 
         # We have the test plan and are in our sandbox with [roundup(5)][r5]
@@ -234,7 +248,7 @@ do
         . ./$roundup_p
 
         # Output the description signal
-        printf "d %s" "$roundup_desc" | tr "\n" " "
+        printf "d %s" "$roundup_desc" | awk '{ printf "%s ", $0 }'
         printf "\n"
 
         for roundup_test_name in $roundup_plan
@@ -259,8 +273,8 @@ do
                 # exit subshell with return code of last failing command. This
                 # is needed to see the return code 253 on failed assumptions.
                 # But, only do this if the error handling is activated.
-                set -E
-                trap 'rc=$?; set +x; set -o | grep "errexit.*on" >/dev/null && exit $rc' ERR
+                $USE_SET_CAP_E && set -E
+                $USE_TRAP_ERR && trap 'rc=$?; set +x; set -o | grep "errexit.*on" >/dev/null && exit $rc' ERR
 
                 # If `before` wasn't redefined, then this is `:`.
                 before
