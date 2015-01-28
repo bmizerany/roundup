@@ -72,7 +72,7 @@ else
 	exit 1
 endif
 
-install: $(INSTALL_PREREQUISITES)
+install: build
 	test -f roundup
 	mkdir -p "$(bindir)"
 	cp roundup "$(bindir)/roundup"
