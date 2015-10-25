@@ -87,10 +87,10 @@ it_runs_after_if_a_test_fails_part_2() {
 
 # Output the correct return code of a failing command of a testcase.
 it_outputs_the_return_code_7() {
-    function f() { return 42; }
+    f() { return 42; }
     x=$(echo asdf)
 
-    function g() { return 7; }
+    g() { return 7; }
     g
 }
 
