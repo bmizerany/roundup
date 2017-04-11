@@ -243,27 +243,11 @@ do
             # test.  Drop into an subshell to contain operations that may throw
             # off roundup; such as `cd`.
             (
-                # Output `before` trace to temporary file. If `before` runs cleanly,
-                # the trace will be overwritten by the actual test case below.
-                {
-                    # redirect tracing output of `before` into file.
-                    {
-                        set -x
-                        # If `before` wasn't redefined, then this is `:`.
-                        before
-                    } &>"$roundup_tmp/$roundup_test_name"
-                    # disable tracing again. Its trace output goes to /dev/null.
-                    set +x
-                } &>/dev/null
-
                 # exit subshell with return code of last failing command. This
                 # is needed to see the return code 253 on failed assumptions.
                 # But, only do this if the error handling is activated.
                 set -E
                 trap 'rc=$?; set +x; set -o | grep "errexit.*on" >/dev/null && exit $rc' ERR
-
-                # If `before` wasn't redefined, then this is `:`.
-                before
 
                 # Momentarily turn off auto-fail to give us access to the tests
                 # exit status in `$?` for capturing.
@@ -275,24 +259,42 @@ do
                     # failed test should not immediately fail roundup.  Each
                     # tests trace output is saved in temporary storage.
                     set -xe
-                    $roundup_test_name
+
+                    # Run the setup routine; if `before` wasn't redefined, then
+                    # this is `:`.
+                    before
+
+                    # Similarly to above, momentarily turn off auto-fail, so
+                    # that we can have the tear-down function run even if the
+                    # test fails.
+                    set +e
+                    (
+                        # Turn auto-fail back on to allow the test to fail fast.
+                        set -e
+                        $roundup_test_name
+                    )
+                    # Capture the test's exit status.  If tear-down goes ok, we
+                    # will exit with this status to report a test failure.
+                    roundup_status=$?
+                    # It's safe to turn auto-fail back on now.
+                    set -e
+
+                    # Run the tear-down routine; if `after` wasn't redefined,
+                    # then this is `:`.
+                    after
+
+                    # Report the result of the test.
+                    exit $roundup_status
                 ) >"$roundup_tmp/$roundup_test_name" 2>&1
 
-                # We need to capture the exit status before returning the `set
-                # -e` mode.  Returning with `set -e` before we capture the exit
-                # status will result in `$?` being set with `set`'s status
-                # instead.
-                roundup_result=$?
-
-                # It's safe to return to normal operation.
-                set -e
-
-                # If `after` wasn't redefined, then this runs `:`.
-                after
+                # This is where we might turn auto-fail back on; but don't
+                # bother.  The only thing it would affect is a couple of
+                # `printf` statements, and failing on error from them wouldn't
+                # be handled usefully anyway.
 
                 # This is the final step of a test.  Print its pass/fail signal
                 # and name.
-                if [ "$roundup_result" -ne 0 ]
+                if [ "$?" -ne 0 ]
                 then printf "f"
                 else printf "p"
                 fi

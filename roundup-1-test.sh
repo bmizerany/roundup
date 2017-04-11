@@ -46,3 +46,8 @@ it_exits_non_zero() {
 it_survives_edge_cases() {
     rup edge
 }
+
+it_exits_non_zero_on_broken_before () {
+    status=$(set +e ; rup roundup-5 >/dev/null ; echo $?)
+    test 2 -eq $status
+}
